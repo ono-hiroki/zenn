@@ -47,7 +47,7 @@ resource "aws_vpc" "example" {
 
 :::
 
-# 作成したVPCの確認
+## 作成したVPCの確認
 
 vpc > お使いのVPC から確認できます。
 
