@@ -6,11 +6,10 @@ topics: ["aws"]
 published: false
 ---
 
-
-
 # 作成する構成
 
-最終的に下記の構成を作成していきます。[#最終的なTerraformのリソース](#最終的なTerraformのリソース)で最終的なTerraformのリソースを載せてあります。
+最終的に下記の構成を作成していきます。[#最終的なTerraformのリソース](#最終的なTerraformのリソース)
+で最終的なTerraformのリソースを載せてあります。
 
 ![image.png](/images/aws_network_intro/image.png)
 
@@ -37,6 +36,7 @@ published: false
 - terraformで作成する場合のサンプルコード
 
 :::details タイトル
+
 ```hcl
 resource "aws_vpc" "example" {
   cidr_block = "10.0.0.0/16"
@@ -45,8 +45,8 @@ resource "aws_vpc" "example" {
   }
 }
 ```
-:::
 
+:::
 
 # 作成したVPCの確認
 
@@ -196,116 +196,116 @@ VPCのリソースマップを見ると、パブリックサブネットはル�
 
 ```hcl
 terraform {
-   required_version = "~> 1.10"
+  required_version = "~> 1.10"
 
-   required_providers {
-      aws = {
-         source  = "hashicorp/aws"
-         version = "5.78.0"
-      }
-   }
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.78.0"
+    }
+  }
 }
 
 provider "aws" {
-   region = "ap-northeast-1"
+  region = "ap-northeast-1"
 }
 
 resource "aws_vpc" "main" {
-   cidr_block = "10.0.0.0/16"
-   tags = {
-      Name = "my-example-vpc"
-   }
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "my-example-vpc"
+  }
 }
 
 resource "aws_subnet" "public_a" {
-   vpc_id            = aws_vpc.main.id
-   cidr_block        = "10.0.1.0/24"
-   availability_zone = "ap-northeast-1a"
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "ap-northeast-1a"
 
-   tags = {
-      Name = "Public Subnet A"
-   }
+  tags = {
+    Name = "Public Subnet A"
+  }
 }
 
 resource "aws_subnet" "public_c" {
-   vpc_id = aws_vpc.main.id
-   cidr_block        = "10.0.2.0/24"
-   availability_zone = "ap-northeast-1c"
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "ap-northeast-1c"
 
-   tags = {
-      Name = "Public Subnet C"
-   }
+  tags = {
+    Name = "Public Subnet C"
+  }
 }
 
 # サブネットの作成
 resource "aws_subnet" "private_a" {
-   vpc_id            = aws_vpc.main.id
-   cidr_block        = "10.0.11.0/24"
-   availability_zone = "ap-northeast-1a"
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.11.0/24"
+  availability_zone = "ap-northeast-1a"
 
-   tags = {
-      Name = "Private Subnet A"
-   }
+  tags = {
+    Name = "Private Subnet A"
+  }
 }
 
 resource "aws_subnet" "private_c" {
-   vpc_id = aws_vpc.main.id
-   cidr_block        = "10.0.12.0/24"
-   availability_zone = "ap-northeast-1c"
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = "10.0.12.0/24"
+  availability_zone = "ap-northeast-1c"
 
-   tags = {
-      Name = "Private Subnet C"
-   }
+  tags = {
+    Name = "Private Subnet C"
+  }
 }
 
 # インターネットゲートウェイの作成
 resource "aws_internet_gateway" "main" {
-   vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
 
-   tags = {
-      Name = "example-igw"
-   }
+  tags = {
+    Name = "example-igw"
+  }
 }
 
 # ルートテーブルの作成
 resource "aws_route_table" "public" {
-   vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
 
-   route {
-      cidr_block = "0.0.0.0/0"
-      gateway_id = aws_internet_gateway.main.id
-   }
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
+  }
 
-   tags = {
-      Name = "public-rtb"
-   }
+  tags = {
+    Name = "public-rtb"
+  }
 }
 
 resource "aws_route_table" "private" {
-   vpc_id = aws_vpc.main.id
+  vpc_id = aws_vpc.main.id
 
-   route = []
+  route = []
 
-   tags = {
-      Name = "private-rtb"
-   }
+  tags = {
+    Name = "private-rtb"
+  }
 }
 
 # ルートテーブルの関連付け
 resource "aws_route_table_association" "public_a" {
-   subnet_id      = aws_subnet.public_a.id
-   route_table_id = aws_route_table.public.id
+  subnet_id      = aws_subnet.public_a.id
+  route_table_id = aws_route_table.public.id
 }
 resource "aws_route_table_association" "private_a" {
-   subnet_id      = aws_subnet.private_a.id
-   route_table_id = aws_route_table.private.id
+  subnet_id      = aws_subnet.private_a.id
+  route_table_id = aws_route_table.private.id
 }
 resource "aws_route_table_association" "public_c" {
-   subnet_id      = aws_subnet.public_c.id
-   route_table_id = aws_route_table.public.id
+  subnet_id      = aws_subnet.public_c.id
+  route_table_id = aws_route_table.public.id
 }
 resource "aws_route_table_association" "private_c" {
-   subnet_id      = aws_subnet.private_c.id
-   route_table_id = aws_route_table.private.id
+  subnet_id      = aws_subnet.private_c.id
+  route_table_id = aws_route_table.private.id
 }
 ```
