@@ -32,9 +32,7 @@ published: true
 
 ![image2.png](/images/aws_network_intro/image2.png)
 
-- terraformで作成する場合のサンプルコード
-
-:::details タイトル
+:::details terraformで作成する場合のサンプルコード
 
 ```hcl
 resource "aws_vpc" "example" {
