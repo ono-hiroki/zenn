@@ -8,8 +8,7 @@ published: false
 
 # 作成する構成
 
-最終的に下記の構成を作成していきます。[#最終的なTerraformのリソース](#最終的なTerraformのリソース)
-で最終的なTerraformのリソースを載せてあります。
+最終的に下記の構成を作成していきます。[#最終的なTerraformのリソース](#最終的なTerraformのリソース)で最終的なTerraformのリソースを載せてあります。
 
 ![image.png](/images/aws_network_intro/image.png)
 
@@ -62,9 +61,8 @@ vpc > お使いのVPC から確認できます。
 
 # サブネット
 
-次はサブネットを作っていきましょう。
+次はサブネットを作っていきましょう。アベイラビリティゾーンは ap-northeast-1a と ap-northeast-1c の2つを使っていきます。
 
-[//]: # (TODO: AZもある図にする)
 ![image4.png](/images/aws_network_intro/image4.png)
 
 ## サブネットの作成
