@@ -21,7 +21,7 @@ published: true
 # VPC
 
 まずは、以下のような東京リージョン上に 10.0.0.0/16 のVPCを作成していきます。
-![image1.png](/images/aws_network_intro/image1.png)
+![image1.png](/images/aws_network_intro/image3.png)
 
 ## VPCを作成
 
