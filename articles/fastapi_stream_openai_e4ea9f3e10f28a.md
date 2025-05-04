@@ -10,7 +10,7 @@ publication_name: "sonicmoov"
 ## はじめに
 「ピロピロ」と一文字ずつ流れるような UI を実現したいとき、OpenAI API のストリーミング機能を使うと、サーバーからクライアントへリアルタイムにトークンを渡せます。FastAPI ならシンプルに実装できるらしいのでやってみました。
 
-↓ こんな感じ
+↓ こんな感じです。
 ![stream-demo.gif](/images/stream-demo.gif)
 
 ## 依存ライブラリ
