@@ -1,6 +1,6 @@
 ---
 title: "FastAPIに入門する（ルーティング、バリデーション、テストとか）"
-emoji: "👻"
+emoji: "🐍"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["FastAPI"]
 published: true

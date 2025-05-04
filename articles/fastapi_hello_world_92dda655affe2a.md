@@ -1,6 +1,6 @@
 ---
 title: "DockerでFastAPIの開発環境を構築して「Hello World」する"
-emoji: "👻"
+emoji: "🐍"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["FastAPI", "Docker"]
 published: true

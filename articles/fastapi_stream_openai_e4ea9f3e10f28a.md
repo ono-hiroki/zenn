@@ -1,6 +1,6 @@
 ---
 title: "FastAPI × OpenAI ストリームで出力するAPIを作ってみた"
-emoji: "🎃"
+emoji: "🐍"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["python", "fastapi", "openai"]
 published: true
