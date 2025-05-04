@@ -8,7 +8,7 @@ published: true
 
 # 作成する構成
 
-最終的に下記の構成を作成していきます。[#最終的なTerraformのリソース](#最終的なTerraformのリソース)で最終的なTerraformのリソースを載せてあります。
+最終的に下記の構成を作成していきます。[#最終的なTerraformのリソース](#最終的なterraformのリソース)で最終的なTerraformのリソースを載せてあります。
 
 ![image.png](/images/aws_network_intro/image.png)
 
