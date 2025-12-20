@@ -89,3 +89,126 @@ export default async function UsersPage() {
 この例では、`UsersPage`がサーバーコンポーネントとして動作します。`async`関数として定義し、コンポーネント内で直接`await`を使ってデータを取得できます。従来のように`useEffect`や`useState`を使う必要がなく、シンプルに記述できます。
 
 データ取得はサーバー側で行われるため、APIキーなどの機密情報をクライアントに露出させずに済むというメリットもあります。
+
+## サーバー関数（Server Functions）とは
+
+サーバー関数は「クライアント（ブラウザ）から、サーバー上の関数を直接呼び出せる仕組み」です。
+
+**従来の方法**: APIエンドポイントを定義して、fetchで呼び出す
+```javascript
+// クライアント側
+await fetch('/api/users', {
+  method: 'POST',
+  body: JSON.stringify({ name })
+});
+```
+
+**サーバー関数**: 関数を直接呼び出すだけ
+```javascript
+// クライアント側
+await updateName(name);  // これだけでサーバーで実行される
+```
+
+APIルートを自分で定義しなくても、関数呼び出しの形でサーバー処理を実行できます。
+
+## サーバー関数の定義方法
+
+ファイルの先頭に`"use server"`を書くと、そのファイル内のエクスポートされた関数はすべてサーバー関数になります。
+
+```javascript
+// actions.js
+"use server";
+
+export async function updateName(name) {
+  if (!name) {
+    return { error: 'Name is required' };
+  }
+  await db.users.updateName(name);
+}
+```
+
+クライアントコンポーネントからは通常の関数と同じようにインポートして使えます。
+
+```javascript
+// Client Component
+"use client";
+import { updateName } from './actions';
+```
+
+## サーバー関数の例
+
+以下は、Next.jsのApp Routerでサーバー関数を使う簡単な例です。フォームから名前を送信し、サーバー側で挨拶メッセージを生成して返します。
+
+```tsx
+// app/server-function/actions.ts
+"use server";
+
+export type GreetState = {
+    message: string | null;
+    error: string | null;
+};
+
+export async function greet(prevState: GreetState, formData: FormData): Promise<GreetState> {
+    const name = formData.get('name') as string;
+
+    if (!name) {
+        return { message: null, error: '名前を入力してください' };
+    }
+
+    return { message: `こんにちは、${name}さん！`, error: null };
+}
+```
+
+```tsx
+// app/server-function/page.tsx
+"use client";
+
+import { greet } from './actions';
+import { useActionState } from 'react';
+
+export default function GreetPage() {
+  const [state, submitAction, isPending] = useActionState(greet, { message: null, error: null });
+
+  return (
+    <div>
+      <form action={submitAction}>
+        <input type="text" name="name" placeholder="名前を入力" disabled={isPending} />
+        <button type="submit" disabled={isPending}>
+          {isPending ? '送信中...' : '送信'}
+        </button>
+      </form>
+      {state?.error && <p style={{ color: 'red' }}>{state.error}</p>}
+      {state?.message && <p>{state.message}</p>}
+    </div>
+  );
+}
+```
+
+この例では、フォーム送信時に`greet`がサーバー側で実行され、結果がクライアントに返されます。外部APIやデータベースを使わずに、サーバー関数の基本的な動作を確認できます。
+
+## フォームとの連携
+
+サーバー関数はReact 19のフォーム機能と連携して動作します。`useActionState`を使うと、実行中の状態やエラーを簡単に取得できます。
+
+```javascript
+"use client";
+import { updateName } from './actions';
+import { useActionState } from 'react';
+
+function UpdateName() {
+  const [state, submitAction, isPending] = useActionState(updateName, { error: null });
+
+  return (
+    <form action={submitAction}>
+      <input type="text" name="name" disabled={isPending} />
+      {state.error && <span>Failed: {state.error}</span>}
+    </form>
+  );
+}
+```
+
+- `state`: サーバー関数の戻り値（エラー情報など）
+- `submitAction`: フォームのactionに渡す関数
+- `isPending`: 実行中かどうか（ローディング表示に使える）
+
+フォームの送信が成功すると、Reactは自動的にフォームをリセットします。
