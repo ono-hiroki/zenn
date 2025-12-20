@@ -1,5 +1,5 @@
 ---
-title: "React Server Componentをざっくり理解する"
+title: "React Server Componentとサーバー関数をざっくり理解する"
 emoji: "🙌"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [React, Next.js]
@@ -7,13 +7,13 @@ published: false
 ---
 
 ## はじめに
-Next.jsに入門しようと思ったら、React Server Component (RSC) の話が出てきました。[Reactの公式ドキュメント](https://ja.react.dev/reference/rsc/server-components)を読んだので、その内容をまとめます。
+Next.jsに入門しようと思ったら、React Server Component（RSC）やサーバー関数（Server Functions）の話が出てきました。[Reactの公式ドキュメント](https://ja.react.dev/reference/rsc/server-components)を読んだので、その内容をまとめます。
 
 ## React Server Component とは
 
-Server Componentsは「クライアント（ブラウザ）に送信される前に、サーバー側で事前にレンダリングされるコンポーネント」です。 従来のReactでは、すべてのコンポーネントがブラウザで動作していましたが「ブラウザ側で動かす必要がないコンポーネントは、サーバー側で動かしてしまおう」という狙いなのかなと思います。
+サーバーコンポーネントは「クライアント（ブラウザ）に送信される前に、サーバー側で事前にレンダリングされるコンポーネント」です。従来のReactでは、すべてのコンポーネントがブラウザで動作していましたが「ブラウザ側で動かす必要がないコンポーネントは、サーバー側で動かしてしまおう」という狙いなのかなと思います。
 
-## 従来の課題とServer Componentの解決策
+## 従来の課題とサーバーコンポーネントの解決策
 
 **課題**: Markdownを表示するだけなのに、ブラウザが75KBのライブラリをダウンロードし、さらにAPIリクエストも発生する。
 
@@ -23,7 +23,7 @@ useEffect(() => {
   fetch(`/api/content/${page}`).then(...)
 }, [page]);
 ```
-**Server Componentの解決策**: サーバー側でMarkdownをHTMLに変換し、ブラウザにはHTMLだけを送信する。
+**サーバーコンポーネントの解決策**: サーバー側でMarkdownをHTMLに変換し、ブラウザにはHTMLだけを送信する。
 
 ```javascript
 // Server Component: サーバーでパース → HTMLをブラウザに送信
@@ -207,31 +207,3 @@ $ curl -X POST "http://localhost:3000/server-function" \
 ```
 
 サーバー関数は、書き心地としては関数の定義と呼び出しだけで完結しますが、裏側ではHTTPリクエストが発生しています。つまり、APIエンドポイントが自動的に公開されるということです。セキュリティの観点から、サーバー関数内でも認証・認可のチェックは必要になります。
-
-
-## フォームとの連携
-
-サーバー関数はReact 19のフォーム機能と連携して動作します。`useActionState`を使うと、実行中の状態やエラーを簡単に取得できます。
-
-```javascript
-"use client";
-import { updateName } from './actions';
-import { useActionState } from 'react';
-
-function UpdateName() {
-  const [state, submitAction, isPending] = useActionState(updateName, { error: null });
-
-  return (
-    <form action={submitAction}>
-      <input type="text" name="name" disabled={isPending} />
-      {state.error && <span>Failed: {state.error}</span>}
-    </form>
-  );
-}
-```
-
-- `state`: サーバー関数の戻り値（エラー情報など）
-- `submitAction`: フォームのactionに渡す関数
-- `isPending`: 実行中かどうか（ローディング表示に使える）
-
-フォームの送信が成功すると、Reactは自動的にフォームをリセットします。
