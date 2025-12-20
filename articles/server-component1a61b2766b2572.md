@@ -7,7 +7,7 @@ published: false
 ---
 
 ## はじめに
-Next.jsに入門しようと思ったら、React Server Component (RSC) の話が出てきたので、[Reactの公式ドキュメント](https://ja.react.dev/reference/rsc/server-components)を読んだのでその内容をまとめます。
+Next.jsに入門しようと思ったら、React Server Component (RSC) の話が出てきました。[Reactの公式ドキュメント](https://ja.react.dev/reference/rsc/server-components)を読んだので、その内容をまとめます。
 
 ## React Server Component とは
 
@@ -23,7 +23,7 @@ useEffect(() => {
   fetch(`/api/content/${page}`).then(...)
 }, [page]);
 ```
-**Server Componentの解決作**: サーバー側でMarkdownをHTMLに変換し、ブラウザにはHTMLだけを送信する。
+**Server Componentの解決策**: サーバー側でMarkdownをHTMLに変換し、ブラウザにはHTMLだけを送信する。
 
 ```javascript
 // Server Component: サーバーでパース → HTMLをブラウザに送信
@@ -42,11 +42,18 @@ async function Page({page}) {
 // Server Component（親）
 async function Notes() {
   const notes = await db.notes.getAll();
-  return <Expandable><p note={note} /></Expandable>;
+  return (
+    <Expandable>
+      {notes.map(note => <p key={note.id}>{note.content}</p>)}
+    </Expandable>
+  );
 }
+```
 
+```javascript
 // Client Component（子）- これだけブラウザで動く
 "use client"
+
 function Expandable({children}) {
   const [expanded, setExpanded] = useState(false);
   // ボタンクリックで開閉
@@ -54,36 +61,31 @@ function Expandable({children}) {
 ```
 
 ## 簡単な例
-以下は、Next.jsのApp Routerでサーバーコンポーネントを使う簡単な例です。
+以下は、Next.jsのApp Routerでサーバーコンポーネントを使ってデータを取得する例です。
 
 ```tsx
-// app/server-action/page.tsx
-import { greet } from './actions'
+// app/users/page.tsx
+async function getUsers() {
+  const res = await fetch('https://jsonplaceholder.typicode.com/users');
+  return res.json();
+}
 
-export default function Page() {
-    return (
-        <main>
-            <h1>Server Action デモ</h1>
-            <form action={greet}>
-                <input type="text" name="name" placeholder="名前を入力" />
-                <button type="submit">送信</button>
-            </form>
-        </main>
-    )
+export default async function UsersPage() {
+  const users = await getUsers();
+
+  return (
+    <main>
+      <h1>ユーザー一覧</h1>
+      <ul>
+        {users.map((user: { id: number; name: string }) => (
+          <li key={user.id}>{user.name}</li>
+        ))}
+      </ul>
+    </main>
+  );
 }
 ```
 
-```tsx
-// app/server-action/actions.ts
-'use server'
+この例では、`UsersPage`がサーバーコンポーネントとして動作します。`async`関数として定義し、コンポーネント内で直接`await`を使ってデータを取得できます。従来のように`useEffect`や`useState`を使う必要がなく、シンプルに記述できます。
 
-export async function greet(formData: FormData) {
-    const name = formData.get('name')
-    console.log(`[Server] name = ${name}`)
-}
-```
-
-この例では、`page.tsx`がサーバーコンポーネントとして動作し、フォームの送信時に`actions.ts`の`greet`関数がサーバー側で実行されます。  
-console.logの出力はブラウザのコンソールではなく、`npm run dev`のターミナルに表示されることからサーバー側で動作していることが確認できます。
-
-
+データ取得はサーバー側で行われるため、APIキーなどの機密情報をクライアントに露出させずに済むというメリットもあります。
