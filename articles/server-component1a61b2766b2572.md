@@ -1,5 +1,5 @@
 ---
-title: "React Server Component 入門"
+title: "React Server Componentをざっくり理解する"
 emoji: "🙌"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [React, Next.js]
