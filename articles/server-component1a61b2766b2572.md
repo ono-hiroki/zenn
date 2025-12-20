@@ -186,6 +186,29 @@ export default function GreetPage() {
 
 この例では、フォーム送信時に`greet`がサーバー側で実行され、結果がクライアントに返されます。外部APIやデータベースを使わずに、サーバー関数の基本的な動作を確認できます。
 
+## サーバー関数の裏側
+
+先ほどの例で、分かりやすくするために`greet`関数に遅延を入れて、ブラウザの開発者ツールでネットワークタブを確認してみます。
+
+すると、確かにAPIリクエストが発生していることが分かります。
+![ネットワークタブでAPIリクエストを確認](/images/server-component1a61b2766b2572/img.png)
+
+実際にcurlでリクエストを送ってみると、以下のようなレスポンスが返ってきます。
+
+```bash
+$ curl -X POST "http://localhost:3000/server-function" \
+  -H "Next-Action: 606ff4047cb4a710a8ff4213835980c0dd41a6e981" \
+  -H "Content-Type: multipart/form-data" \
+  -F "name=aaaa"
+:N1766222359175.8567
+0:{"a":"$@1","f":"","b":"development"}
+1:D{"time":0.59825000166893}
+1:E{"digest":"2755580262","name":"Error","message":"Connection closed.","stack":[],"env":"Server","owner":null}
+```
+
+サーバー関数は、書き心地としては関数の定義と呼び出しだけで完結しますが、裏側ではHTTPリクエストが発生しています。つまり、APIエンドポイントが自動的に公開されるということです。セキュリティの観点から、サーバー関数内でも認証・認可のチェックは必要になります。
+
+
 ## フォームとの連携
 
 サーバー関数はReact 19のフォーム機能と連携して動作します。`useActionState`を使うと、実行中の状態やエラーを簡単に取得できます。
