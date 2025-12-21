@@ -3,7 +3,7 @@ title: "React Server Componentとサーバー関数をざっくり理解する"
 emoji: "🙌"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: [React, Next.js]
-published: false
+published: true
 ---
 
 ## はじめに
