@@ -3,7 +3,7 @@ title: "Terragrunt入門：公式Quickstartを実践してみた"
 emoji: "🏗️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["Terragrunt", "Terraform", "IaC", "DevOps"]
-published: false
+published: true
 ---
 
 Terragruntの公式ドキュメントにあるQuickstartチュートリアルを実際に手を動かしながら進めてみました。この記事では、Terragruntの基本的な概念から依存関係管理まで、段階的に学んだ内容をまとめます。
