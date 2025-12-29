@@ -3,7 +3,7 @@ title: "Terraformで Enter を押しても ^M が表示されて進まない問�
 emoji: "⌨️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["Terraform", "Terminal", "Linux", "macOS"]
-published: false
+published: true
 ---
 
 `terraform apply` で `yes` を入力して Enter を押したのに、`^M` が表示されて処理が進まない。そんな現象に遭遇したときの原因と解決方法を紹介します。
