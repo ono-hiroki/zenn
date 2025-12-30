@@ -6,13 +6,11 @@ topics: ["AWS", "ECS", "Terraform", "Terragrunt", "ecspresso"]
 published: false
 ---
 
-# Terragrunt × ecspresso の初回デプロイ問題と解決策
-
 ## はじめに
 
 Terragrunt でインフラを管理し、ecspresso で ECS サービスをデプロイする構成は、それぞれのツールの強みを活かせる組み合わせです。しかし、**初回デプロイ時に依存関係の循環的な問題**が発生します。
 
-この記事では、この問題の本質と、いくつかの解決策のメリット・デメリットを整理します。
+この記事では、この問題の本質と、5つの解決策のメリット・デメリットを整理します。
 
 ## 問題：初回デプロイ時の依存関係
 
@@ -47,7 +45,7 @@ Terragrunt でインフラを管理し、ecspresso で ECS サービスをデプ
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 何が問題か
+### なぜ問題になるのか
 
 1. **ecspresso は Terraform の出力に依存**
     - IAM ロールの ARN
@@ -123,19 +121,20 @@ resource "null_resource" "ecspresso" {
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 # Phase 1: インフラ（Auto Scaling 以外）
-cd live/dev
 terragrunt run-all apply \
+  --terragrunt-working-dir "${SCRIPT_DIR}/live/dev" \
   --terragrunt-exclude-dir "**/ecs-autoscaling" \
   --terragrunt-exclude-dir "**/ecs-alarms"
 
 # Phase 2: ECS サービス
-cd ../../ecspresso/dev-nginx
-ecspresso deploy --config ecspresso.yml
+ecspresso deploy --config "${SCRIPT_DIR}/ecspresso/dev-nginx/ecspresso.yml"
 
 # Phase 3: Auto Scaling / Alarms
-cd ../../live/dev
-terragrunt run-all apply
+terragrunt run-all apply \
+  --terragrunt-working-dir "${SCRIPT_DIR}/live/dev"
 ```
 
 | メリット | デメリット |
@@ -224,9 +223,9 @@ resource "aws_ecs_task_definition" "this" {
 
 ## 比較表
 
-| 解決策 | 初回の手間 | 運用の手間 | 実装コスト | 自動化 | おすすめ度 |
-|--------|-----------|-----------|-----------|--------|-----------|
-| 1. null_resource 統合 | ◎ 少ない | ◎ 少ない | △ 高い | ◎ | チームで長期運用する場合 |
+| 解決策 | 初回の手間 | 運用の手間 | 実装コスト | 自動化 | ユースケース |
+|--------|-----------|-----------|-----------|--------|-------------|
+| 1. null_resource 統合 | ◎ 少ない | ◎ 少ない | △ 高い | ◎ | チームで長期運用 |
 | 2. シェルスクリプト | ○ 普通 | ○ 普通 | ◎ 低い | ○ | バランス重視 |
 | 3. 手動コメントアウト | △ 多い | △ 多い | ◎ 低い | × | 個人開発・検証環境 |
 | 4. skip + 環境変数 | ○ 普通 | ○ 普通 | ○ 中程度 | ○ | CI/CD 重視 |
@@ -258,6 +257,12 @@ resource "aws_ecs_task_definition" "this" {
 - CI/CD での制御を重視
 - コードを変更せずに挙動を変えたい
 - 複数環境で同じ設定を使いたい
+
+### Terraform 一本化（解決策 5）を選ぶ場合
+
+- ecspresso の機能（diff、ロールバックなど）が不要
+- ツールを増やしたくない
+- アプリデプロイの頻度が低い
 
 ## まとめ
 
