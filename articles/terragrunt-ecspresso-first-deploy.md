@@ -1,8 +1,8 @@
 ---
-title: ""
-emoji: "🗂"
-type: "tech" # tech: 技術記事 / idea: アイデア
-topics: []
+title: "Terragrunt × ecspresso 構成で初回デプロイ時に発生する依存関係問題と5つの解決策"
+emoji: "🐣"
+type: "tech"
+topics: ["AWS", "ECS", "Terraform", "Terragrunt", "ecspresso"]
 published: false
 ---
 
@@ -271,6 +271,5 @@ Terragrunt と ecspresso を組み合わせる場合、**初回デプロイ時�
 
 ## 参考
 
-- [ecspresso と Terraform の連携 - @fujiwara](https://zenn.dev/fujiwara/articles/ecspresso-and-terraform)
 - [ecspresso 公式ドキュメント](https://github.com/kayac/ecspresso)
 - [Terragrunt 公式ドキュメント](https://terragrunt.gruntwork.io/)
