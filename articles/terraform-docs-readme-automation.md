@@ -6,13 +6,11 @@ topics: ["Terraform", "terraformdocs", "IaC", "ドキュメント"]
 published: false
 ---
 
-# terraform-docsでTerraformモジュールのREADMEを自動生成する
-
 ## はじめに
 
 Terraformモジュールを作成する際、READMEの作成・更新は面倒な作業です。変数を追加するたびにREADMEを手動で更新するのは手間がかかり、ドキュメントと実装の乖離も起きやすくなります。
 
-[terraform-docs](https://terraform-docs.io/)は、Terraformの設定ファイルから自動的にドキュメントを生成するツールです。この記事では、Markdown形式のREADME生成に焦点を当てて、実際に試した機能を紹介します。
+[terraform-docs](https://terraform-docs.io/)は、Terraformの設定ファイルからドキュメントを自動生成するツールです。この記事では、Markdown形式のREADME生成を中心に、基本的な使い方から設定ファイルによるカスタマイズまでを紹介します。
 
 ## 環境
 
@@ -69,17 +67,17 @@ terraform-docs-playground/
 */
 
 terraform {
-required_version = ">= 1.0.0"
+  required_version = ">= 1.0.0"
 
-required_providers {
-aws = {
-source  = "hashicorp/aws"
-version = ">= 5.0.0"
-}
-}
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.0.0"
+    }
+  }
 }
 
-# ... 以下リソース定義
+# リソース定義は省略
 ```
 
 ### variables.tf
@@ -221,7 +219,6 @@ Default: `"t3.micro"`
 formatter: "markdown table"
 
 header-from: main.tf
-footer-from: ""
 
 output:
   file: "README.md"
@@ -236,19 +233,7 @@ sort:
   by: name
 
 settings:
-  anchor: true
-  color: true
-  default: true
-  description: true
-  escape: true
-  hide-empty: false
-  html: true
-  indent: 2
-  lockfile: true
-  read-comments: true
-  required: true
-  sensitive: true
-  type: true
+  hide-empty: true
 ```
 
 ### 主要な設定項目
@@ -310,25 +295,23 @@ content: |-
 
 `{{ include "path/to/file" }}`を使用すると、外部ファイルの内容を埋め込めます。使用例を別ファイルで管理したい場合に便利です。
 
-```yaml
+~~~yaml
 content: |-
   {{ .Header }}
   {{ .Requirements }}
   {{ .Providers }}
   ## Usage
-  # ここに ```hcl と ``` で囲んでコードブロックを作成
+  ```hcl
   {{ include "examples/basic/main.tf" }}
-  # コードブロック終了
+  ```
   {{ .Inputs }}
   {{ .Outputs }}
   {{ .Resources }}
-```
+~~~
 
-実際の設定では、`# ここに...` の部分を ` ```hcl ` と ` ``` ` に置き換えてください。
+`examples/basic/main.tf`に使用例を記述しておくと、READMEのUsageセクションにそのまま埋め込まれます。
 
-`examples/basic/main.tf`の内容：
-
-```hcl
+```hcl:examples/basic/main.tf
 module "ec2" {
   source = "../../"
 
@@ -338,7 +321,7 @@ module "ec2" {
 }
 ```
 
-これにより、READMEにUsageセクションが追加され、実際に動作するサンプルコードが埋め込まれます。
+この方法なら、使用例を実際にterraform planで検証しながら、ドキュメントにも反映できます。
 
 ## セクションの表示/非表示
 
@@ -363,9 +346,9 @@ sections:
   show: [inputs, outputs, requirements]
 ```
 
-## settingsオプション
+## settings オプション
 
-出力の細かい調整ができます。
+出力の細かな調整ができます。
 
 ### anchor
 
@@ -407,59 +390,6 @@ settings:
   sensitive: true    # sensitive変数にマーク
   type: true         # 型を表示
 ```
-
-## 実践的な設定例
-
-実際のプロジェクトで使用する設定ファイルの例です。
-
-```yaml
-formatter: "markdown table"
-
-header-from: main.tf
-
-recursive:
-  enabled: false
-  path: modules
-
-sections:
-  hide: []
-  show: []
-
-content: |-
-  {{ .Header }}
-  {{ .Requirements }}
-  {{ .Providers }}
-  ## Usage
-  # ここに ```hcl と ``` で囲んでコードブロックを作成
-  {{ include "examples/basic/main.tf" }}
-  # コードブロック終了
-  {{ .Inputs }}
-  {{ .Outputs }}
-  {{ .Resources }}
-
-output:
-  file: "README.md"
-  mode: inject
-  template: |-
-    <!-- BEGIN_TF_DOCS -->
-    {{ .Content }}
-    <!-- END_TF_DOCS -->
-
-sort:
-  enabled: true
-  by: name
-
-settings:
-  anchor: true
-  default: true
-  description: true
-  hide-empty: true
-  required: true
-  sensitive: true
-  type: true
-```
-
-※ `content`内の `# ここに...` の部分は、実際には ` ```hcl ` と ` ``` ` に置き換えてください。
 
 ## まとめ
 
