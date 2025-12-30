@@ -1,13 +1,10 @@
 ---
-title: ""
-emoji: "⛳"
-type: "tech" # tech: 技術記事 / idea: アイデア
-topics: []
+title: "ecspresso と Terragrunt を組み合わせたらサービス名が２重管理になりそう"
+emoji: "🔀"
+type: "tech"
+topics: ["ecspresso", "terragrunt", "ecs", "aws"]
 published: false
 ---
-
-
-# ecspresso と Terragrunt を組み合わせたらサービス名が２重管理になりそう
 
 ## やりたかったこと
 
