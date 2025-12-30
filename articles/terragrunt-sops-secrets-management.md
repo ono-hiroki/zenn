@@ -1,8 +1,8 @@
 ---
-title: ""
-emoji: "🐷"
-type: "tech" # tech: 技術記事 / idea: アイデア
-topics: []
+title: "Terragrunt + SOPS でシークレットを安全に Git 管理する方法"
+emoji: "🔐"
+type: "tech"
+topics: ["Terragrunt", "SOPS", "Terraform", "AWS", "IaC"]
 published: false
 ---
 
