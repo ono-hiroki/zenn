@@ -1,9 +1,9 @@
 ---
-title: "Amazon Bedrock AgentCore Memoryで会話の記憶を管理する"
+title: "AWS CLIで学ぶAmazon Bedrock AgentCore Memory"
 emoji: "🧠"
 type: "tech"
-topics: ["aws", "bedrock", "ai", "agentcore", "memory"]
-published: false
+topics: ["aws","agentcore"]
+published: true
 ---
 
 
