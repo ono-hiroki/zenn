@@ -1,5 +1,5 @@
 ---
-title: "Amazon Bedrock AgentCore Runtimeの最小要件を検証する - 固定値を返すだけのエージェントをデプロイ"
+title: "Amazon Bedrock AgentCore Runtime に最小構成のエージェントをデプロイする"
 emoji: "🔬"
 type: "tech"
 topics: ["aws", "bedrock", "agentcore", "python", "fastapi"]
