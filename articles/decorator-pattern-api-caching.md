@@ -2,8 +2,8 @@
 title: "外部APIのキャッシュ実装にDecoratorパターンを適用する"
 emoji: "🎁"
 type: "tech"
-topics: ["設計", "デザインパターン", "キャッシュ", "クリーンアーキテクチャ"]
-published: false
+topics: ["php", "designpattern", "decorator", "cache"]
+published: true
 ---
 
 ## はじめに
