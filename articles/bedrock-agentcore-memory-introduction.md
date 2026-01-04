@@ -1,10 +1,11 @@
 ---
-title: "AWS Bedrock AgentCore Memory入門 - AIエージェントに記憶を持たせる"
+title: "Amazon Bedrock AgentCore Memoryで会話の記憶を管理する"
 emoji: "🧠"
 type: "tech"
-topics: ["aws", "bedrock", "ai", "rag", "memory"]
+topics: ["aws", "bedrock", "ai", "agentcore", "memory"]
 published: false
 ---
+
 
 ## はじめに
 
