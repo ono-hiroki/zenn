@@ -2,8 +2,8 @@
 title: "インフラ層にインターフェースを置いても良いと気づいた話"
 emoji: "🧅"
 type: "tech"
-topics: ["cleanarchitecture"]
-published: false
+topics: ["cleanarchitecture","php"]
+published: true
 ---
 
 ## はじめに
