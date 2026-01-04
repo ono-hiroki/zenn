@@ -2,8 +2,8 @@
 title: "Amazon Bedrock AgentCore Runtime に最小構成のエージェントをデプロイする"
 emoji: "🔬"
 type: "tech"
-topics: ["aws", "bedrock", "agentcore", "python", "fastapi"]
-published: false
+topics: ["aws", "agentcore", "fastapi"]
+published: true
 ---
 
 ## はじめに
@@ -20,10 +20,12 @@ Amazon Bedrock AgentCore Runtimeは、カスタムエージェントをAWS上で
 |------|-----|----------------|
 | ポート | `8080` | 必須 |
 | エンドポイント | `POST /invocations` | **必須** |
-| エンドポイント | `GET /ping` | オプション |
+| エンドポイント | `GET /ping` | 公式では必須（※） |
 | プラットフォーム | `linux/arm64` | 必須 |
 
-つまり、**ポート8080で`POST /invocations`を実装していれば何でもデプロイ可能**です。
+※ `/ping`について：[公式ドキュメント](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html)では必須とされていますが、後述の検証では`/ping`なしでもデプロイ・呼び出しが成功しました。ただし、ヘルスチェックに使用されるため、実装することを推奨します。
+
+つまり、**ポート8080で`POST /invocations`を実装していれば動作はする**ようです（ただし`/ping`の実装も推奨）。
 
 ## プロジェクト構成
 
@@ -79,8 +81,8 @@ if __name__ == "__main__":
 
 ポイント：
 - **LLMは一切使っていない** - 単なるFastAPIアプリ
-- `POST /invocations` - AgentCoreからの呼び出しを受け付ける
-- `GET /ping` - ヘルスチェック用（後述の検証でオプションと判明）
+- `POST /invocations` - AgentCoreからの呼び出しを受け付ける（必須）
+- `GET /ping` - ヘルスチェック用（公式では必須）
 - ポート`8080`で起動
 
 ### Dockerfile
@@ -366,7 +368,7 @@ async def invoke_agent(request: InvocationRequest):
 
 **結果：デプロイ成功、呼び出し成功**
 
-`/ping`はオプションであることが確認できました。
+`/ping`がなくても動作することが確認できました（ただし公式ドキュメントでは必須とされています）。
 
 ### 検証2: `/invocations`を`/invoke`に変更
 
@@ -391,8 +393,10 @@ Received error (404) from runtime
 | テスト内容 | デプロイ | 呼び出し | 結論 |
 |-----------|---------|---------|------|
 | 正常（両方あり） | ✅ 成功 | ✅ 成功 | - |
-| `/ping`を削除 | ✅ 成功 | ✅ 成功 | **オプション** |
+| `/ping`を削除 | ✅ 成功 | ✅ 成功 | 動作はする（※） |
 | `/invocations`を変更 | ✅ 成功 | ❌ 404 | **必須（パス固定）** |
+
+※ `/ping`は[公式ドキュメント](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html)では必須エンドポイントとして記載されています。検証時点では動作しましたが、ヘルスチェック失敗時にセッションがTerminatedになる可能性があるため、本番環境では必ず実装してください。
 
 ## アーキテクチャ
 
@@ -468,10 +472,13 @@ aws iam delete-role --role-name AgentCoreRuntimeRole
 
 Amazon Bedrock AgentCore Runtimeは、思った以上にシンプルでした。
 
-**最小要件：**
+**公式要件：**
 - `POST /invocations`エンドポイント（パス固定）
+- `GET /ping`エンドポイント（ヘルスチェック用）
 - ポート8080
 - linux/arm64コンテナ
+
+検証では`/ping`なしでも動作しましたが、公式ドキュメントでは必須とされているため実装を推奨します。
 
 LLMを使わない固定値エージェントでも問題なくデプロイできます。これはつまり：
 
@@ -483,5 +490,6 @@ AgentCore Runtimeは「AIエージェント専用」というよりも、**エ�
 
 ## 参考
 
+- [Amazon Bedrock AgentCore HTTP protocol contract](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html)
+- [Get started without the starter toolkit](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-custom.html)
 - [Strands Agents - Deploy to Bedrock AgentCore](https://strandsagents.com/latest/documentation/docs/user-guide/deploy/deploy_to_bedrock_agentcore/python/)
-- [Amazon Bedrock AgentCore Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agentcore.html)
