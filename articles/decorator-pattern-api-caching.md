@@ -8,9 +8,9 @@ published: false
 
 ## はじめに
 
-外部APIを呼び出す処理にキャッシュを追加する場面は多くあります。素直に実装すると、APIクライアントの中にキャッシュ処理を直接書くことになりがちですが、この方法にはいくつかの課題があります。
+外部APIを呼び出す処理にキャッシュを追加したい場面は多くあります。素直に実装すると、APIクライアントの中にキャッシュ処理を直接書くことになりがちです。
 
-本記事では、Decoratorパターンを使ってキャッシュ処理を分離する設計について紹介します。
+本記事では、Decoratorパターンを使ってキャッシュ処理を分離する設計を紹介します。責務を分離することで、テストしやすく変更に強い構造を実現できます。
 
 ## よくある実装の課題
 
@@ -39,37 +39,80 @@ Decoratorパターンは、オブジェクトに動的に新しい責務を追�
 ### 構造
 
 ```
-┌─────────────────────────────────────────────────┐
-│                   Interface                      │
-│              ApiClientInterface                  │
-└─────────────────────────────────────────────────┘
-                        △
-                        │ implements
-          ┌─────────────┴─────────────┐
-          │                           │
-┌─────────────────────┐    ┌─────────────────────┐
-│    ApiClient        │    │  CachingApiClient   │
-│   (実際のAPI呼出)    │    │   (キャッシュ層)     │
-└─────────────────────┘    └─────────────────────┘
-                                    │
-                                    │ has-a (委譲)
-                                    ▼
-                            ApiClientInterface
+          ApiClientInterface
+                 △
+                 │ implements
+        ┌────────┴────────┐
+        │                 │
+   ApiClient      CachingApiClient
+  (実際のAPI呼出)     (キャッシュ層)
+                          │
+                          │ has-a (委譲)
+                          ▼
+                  ApiClientInterface
 ```
+
+`CachingApiClient`は`ApiClientInterface`を実装しつつ、内部に同じインターフェース型のオブジェクトを保持します。これにより、呼び出し側はキャッシュの有無を意識せずに利用できます。
 
 ### 設計のポイント
 
-1. **インターフェースを定義する**
-   APIクライアントの振る舞いをインターフェースとして定義します。
+1. **インターフェースを定義する** - APIクライアントの振る舞いを抽象化します
+2. **APIクライアントを実装する** - キャッシュを意識せず、純粋にAPI呼び出しだけを行います
+3. **キャッシュDecoratorを実装する** - 同じインターフェースを実装し、キャッシュヒット時はそれを返し、ミス時は委譲先を呼び出して結果をキャッシュします
+4. **DIコンテナで組み立てる** - APIクライアントをDecoratorでラップしてバインドします
 
-2. **本来のAPIクライアントを実装する**
-   キャッシュのことは考えず、純粋にAPI呼び出しだけを行うクラスを作ります。
+### コード例
 
-3. **キャッシュ用のDecoratorを実装する**
-   同じインターフェースを実装し、内部に別のAPIクライアント（インターフェース型）を保持します。キャッシュにヒットすればそれを返し、なければ内部のクライアントに委譲してから結果をキャッシュします。
+```php
+// インターフェース
+interface WeatherApiClientInterface
+{
+    public function getWeather(string $city): WeatherData;
+}
 
-4. **DIコンテナで組み立てる**
-   実際のAPIクライアントをDecoratorでラップして、インターフェースにバインドします。
+// 実際のAPIクライアント
+class WeatherApiClient implements WeatherApiClientInterface
+{
+    public function getWeather(string $city): WeatherData
+    {
+        // 外部APIを呼び出す
+        $response = $this->httpClient->get("/weather?city={$city}");
+        return WeatherData::fromResponse($response);
+    }
+}
+
+// キャッシュDecorator
+class CachingWeatherApiClient implements WeatherApiClientInterface
+{
+    public function __construct(
+        private WeatherApiClientInterface $inner,
+        private CacheInterface $cache,
+        private int $ttl = 3600,
+    ) {}
+
+    public function getWeather(string $city): WeatherData
+    {
+        $key = "weather:{$city}";
+
+        return $this->cache->remember($key, $this->ttl, fn () =>
+            $this->inner->getWeather($city)
+        );
+    }
+}
+```
+
+DIコンテナでの組み立て例：
+
+```php
+// 本番環境：キャッシュを有効化
+$container->bind(
+    WeatherApiClientInterface::class,
+    fn () => new CachingWeatherApiClient(
+        new WeatherApiClient(),
+        $container->get(CacheInterface::class),
+    )
+);
+```
 
 ## Decoratorパターンの利点
 
@@ -93,13 +136,12 @@ Decoratorパターンは、オブジェクトに動的に新しい責務を追�
 
 Decoratorは入れ子にできるため、複数の横断的関心事を組み合わせられます。
 
-例：
 - ログ出力Decorator
 - リトライDecorator
 - サーキットブレーカーDecorator
 - キャッシュDecorator
 
-これらを必要に応じて組み合わせたり、外したりできます。
+これらを必要に応じて組み合わせたり外したりでき、順序の変更も容易です。
 
 ### 環境ごとの切り替え
 
@@ -128,15 +170,11 @@ Decoratorパターンはクラス数が増えるため、シンプルな要件�
 
 ## まとめ
 
-Decoratorパターンを使うことで、外部APIクライアントにキャッシュなどの横断的関心事を追加する際に、以下のメリットが得られます。
+Decoratorパターンを使うことで、キャッシュなどの横断的関心事をAPIクライアント本体から分離できます。
 
-- 各クラスの責務が明確になる
-- テストが書きやすくなる
-- 機能の追加・削除が容易になる
-- 環境ごとの設定切り替えが簡単になる
+- 責務が明確になり、変更の影響範囲が限定される
+- 各コンポーネントを独立してテストできる
+- 機能の追加・削除・組み合わせが容易
+- DIコンテナの設定だけで環境ごとの切り替えが可能
 
-外部APIとの連携処理を設計する際の選択肢として、検討してみてください。
-
-## 参考
-
-- [Decorator pattern - Wikipedia](https://en.wikipedia.org/wiki/Decorator_pattern)
+クラス数は増えますが、複数の関心事を扱う必要がある場合や、将来的な拡張が見込まれる場合には有効な選択肢です。
