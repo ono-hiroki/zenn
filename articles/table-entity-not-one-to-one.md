@@ -1,16 +1,16 @@
 ---
-title: "テーブルとEntityは1対1じゃなくていい"
+title: "テーブルとEntityは1対1じゃなくてもいい"
 emoji: "🎭"
 type: "tech"
-topics: ["設計", "アーキテクチャ", "SOLID", "オブジェクト指向"]
-published: false
+topics: ["architecture", "oop", "solid"]
+published: true
 ---
 
 ## はじめに
 
 「1テーブル = 1Entity」という設計パターンは広く使われています。ORMの自動生成機能もこの前提で作られていることが多いでしょう。
 
-しかし、この対応関係は必須ではありません。
+しかし、この対応関係は必須というわけではありません。
 
 - 同じテーブルを参照するEntityが複数あってもいい
 - 複数のテーブルを1つのEntityにまとめてもいい
