@@ -4,6 +4,7 @@ emoji: "🗂"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["Terraform", "terraformdocs", "IaC", "ドキュメント"]
 published: true
+publication_name: "sonicmoov"
 ---
 
 ## はじめに

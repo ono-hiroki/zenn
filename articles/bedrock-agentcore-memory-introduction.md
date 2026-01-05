@@ -4,6 +4,7 @@ emoji: "🧠"
 type: "tech"
 topics: ["aws","agentcore"]
 published: true
+publication_name: "sonicmoov"
 ---
 
 

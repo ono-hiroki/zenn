@@ -4,6 +4,7 @@ emoji: "🔬"
 type: "tech"
 topics: ["aws", "agentcore", "fastapi"]
 published: true
+publication_name: "sonicmoov"
 ---
 
 ## はじめに
