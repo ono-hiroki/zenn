@@ -2,7 +2,7 @@
 title: "読み取りは自由でいい"
 emoji: "🔀"
 type: "tech"
-topics: ["php", "laravel"]
+topics: [ "php","architecture","cqrs" ]
 published: true
 ---
 
