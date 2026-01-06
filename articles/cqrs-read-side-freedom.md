@@ -2,8 +2,8 @@
 title: "読み取りは自由でいい"
 emoji: "🔀"
 type: "tech"
-topics: ["cqrs", "php", "laravel"]
-published: false
+topics: ["php", "laravel"]
+published: true
 ---
 
 ## はじめに
@@ -148,10 +148,3 @@ class PlaceOrderUseCase {
 読み取りは、**用途に合わせて最適な方法で取得していい**。
 
 この気づきが、誰かの設計の参考になれば幸いです。
-
-## 補足：どこまで分けるか
-
-完全なCQRSでは、書き込み用DBと読み取り用DBを分けることもあります。
-でも、そこまでやらなくても大丈夫です。
-
-最初は「QueryServiceを作る」くらいの軽い導入から始めて、必要に応じて発展させていけばいいと思います。
