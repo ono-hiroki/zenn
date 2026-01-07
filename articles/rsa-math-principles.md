@@ -3,7 +3,8 @@ title: "RSA暗号の数学的原理をゼロから理解する"
 emoji: "🔢"
 type: "tech"
 topics: ["rsa", "security"]
-published: false
+published: true
+publication_name: "sonicmoov"
 ---
 
 ## はじめに
