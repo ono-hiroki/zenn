@@ -1,5 +1,5 @@
 ---
-title: "RSA暗号の数学的原理をゼロから理解する"
+title: "RSA暗号はなぜ復号で元に戻るのか"
 emoji: "🔐"
 type: "tech"
 topics: ["rsa", "security"]
