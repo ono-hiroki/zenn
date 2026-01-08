@@ -2,8 +2,8 @@
 title: "RSA署名の仕組みを式変形で理解する"
 emoji: "✍️"
 type: "tech"
-topics: ["rsa", "cryptography", "signature", "security"]
-published: false
+topics: ["rsa", "署名", "security"]
+published: true
 ---
 
 ## はじめに
