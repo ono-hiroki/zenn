@@ -3,7 +3,7 @@ title: "Terragrunt + SOPS でシークレットを安全に Git 管理する"
 emoji: "🔐"
 type: "tech"
 topics: ["terragrunt", "sops", "terraform", "aws"]
-published: false
+published: true
 ---
 
 IaC でシークレット（DB パスワード、API キーなど）をどう管理していますか？
@@ -20,7 +20,7 @@ IaC でシークレット（DB パスワード、API キーなど）をどう管
 
 ## 解決策：SOPS + Terragrunt
 
-**SOPS**（Secrets OPerationS）は Mozilla 製の暗号化ツールです。YAML/JSON のキー名は平文のまま、**値だけを暗号化**できるため、Git の差分が見やすいのが特徴です。
+**SOPS**（Secrets OPerationS）は暗号化ツールです。YAML/JSON のキー名は平文のまま、**値だけを暗号化**できるため、Git の差分が見やすいのが特徴です。
 
 Terragrunt は `sops_decrypt_file()` 関数をネイティブサポートしており、追加ツールなしで復号できます。
 
