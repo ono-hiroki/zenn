@@ -3,11 +3,22 @@ title: "はじめてのPod - nginxを動かして学ぶKubernetes"
 emoji: "🚀"
 type: "tech"
 topics: ["kubernetes", "docker", "container", "nginx"]
-published: false
+published: true
 ---
 
 Kubernetesの最小デプロイ単位であるPodの操作を学びます。
 nginxコンテナを使ってPodの起動・確認・削除を実践します。
+
+## 対象読者
+
+- Dockerの基本操作は知っている
+- Kubernetesは初めて、または触り始めたばかり
+
+## なぜPodなのか
+
+Kubernetesではコンテナを直接扱わず、Podという単位で管理します。Podは1つ以上のコンテナをまとめた「コンテナのラッパー」です。同じPod内のコンテナはネットワークとストレージを共有できます。
+
+まずは1Pod = 1コンテナのシンプルな構成で操作に慣れましょう。
 
 ## 環境
 
@@ -20,10 +31,14 @@ nginxコンテナを使ってPodの起動・確認・削除を実践します。
 Docker Desktopでクラスターが起動していることを確認します。
 
 ```bash
-k cluster-info
+kubectl cluster-info
 ```
 
 ### 1.2. kubectlのエイリアス設定（推奨）
+
+:::message
+以降の例ではエイリアス設定済みとして`k`を使います。
+:::
 
 `kubectl`を`k`で呼び出せるようにエイリアスを設定すると便利です。
 Kubernetes界隈ではほぼ標準的な慣習で、CKA/CKAD認定試験でもデフォルトで用意されています。
@@ -199,13 +214,13 @@ curl用のPodを立ち上げて、その中からnginxにリクエストして�
 #### 1. curl用Podを起動
 
 ```bash
-k run curl-pod --image=curlimages/curl:latest -- sleep 3600
+k run curl-pod --image=curlimages/curl:latest -n dev -- sleep 3600
 ```
 
 #### 2. Podが起動したか確認
 
 ```bash
-k get pod curl-pod
+k get pod curl-pod -n dev
 ```
 
 STATUSが`Running`になるまで待ちます。
@@ -213,7 +228,7 @@ STATUSが`Running`になるまで待ちます。
 #### 3. curl-podに入ってリクエスト
 
 ```bash
-k exec -it curl-pod -- sh
+k exec -it curl-pod -n dev -- sh
 ```
 
 シェル内で:
@@ -227,7 +242,7 @@ nginxのHTMLが返ってくれば成功です。`exit`でシェルを抜けま�
 #### 4. curl-podを削除
 
 ```bash
-k delete pod curl-pod
+k delete pod curl-pod -n dev
 ```
 
 ### 4.3. コンテナに入る (kubectl exec)
@@ -235,7 +250,7 @@ k delete pod curl-pod
 Podの中のコンテナにシェルで入ることができます。
 
 ```bash
-k exec -it nginx -- /bin/bash
+k exec -it nginx -n dev -- /bin/bash
 ```
 
 ### 4.4. コンテナ内でHTMLを編集する
@@ -258,7 +273,7 @@ EOF
 `kubectl port-forward`でPodのポートをホストに転送します。
 
 ```bash
-k port-forward pod/nginx 8080:80
+k port-forward pod/nginx 8080:80 -n dev
 ```
 
 別ターミナルで確認:
