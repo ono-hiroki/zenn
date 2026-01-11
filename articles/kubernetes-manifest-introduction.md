@@ -1,23 +1,28 @@
 ---
-title: "Kubernetes manifest入門 - YAMLファイルでPodを定義して動かす"
-emoji: "📝"
+title: "Kubernetes入門 - manifestファイルでPodを定義する"
+emoji: "☸️"
 type: "tech"
-topics: ["kubernetes"]
-published: false
+topics: ["kubernetes", "yaml", "docker"]
+published: true
 ---
 
 ## はじめに
 
-manifestファイルを用意すると、起動するPodの情報を毎回コマンド実行しなくてもよくなります。
+前回の記事では`kubectl run`コマンドでPodを起動しました。
 
-manifestsに記述する内容は、api-serverに送信されるKubernetesリソースの定義です。
-manifestファイルを使って起動する構成をファイルに保存しておくと、いつでも簡単に同じ構成を再現できます。
+https://zenn.dev/hono8944/articles/hello-kubernetes
+
+しかし、毎回コマンドを手打ちするのは手間がかかりますし、どんな設定で起動したのか後から確認することも難しくなります。
+
+manifestファイルを使えば、Kubernetesリソースの定義をYAMLで記述し、ファイルとして保存できます。これにより、いつでも同じ構成を簡単に再現できるようになります。
 
 ## 環境
 
 - Kubernetes クラスター: Docker Desktop
 
-## manifestの構造
+本記事のコマンド例では`k`を`kubectl`のエイリアスとして使用しています。エイリアスを設定していない場合は`k`を`kubectl`に読み替えてください。
+
+## manifestの基本構造
 
 manifestの構造をnginxのPodを例に見てみましょう。
 
@@ -41,10 +46,10 @@ spec:
     - containerPort: 80
 ```
 
-- 一部のリソースでは、`metadata`や`spec`が無い場合もあります
-- 指定可能な`kind`や`apiVersion`は`k api-resources`で確認できます
+- 一部のリソースでは`metadata`や`spec`がない場合もあります
+- 指定可能な`kind`や`apiVersion`は`kubectl api-resources`で確認できます
 
-## nginxのmanifestを作成する
+## シンプルなPodを定義する
 
 作業ディレクトリを作成し、その中にmanifestファイルを配置していきます。
 
@@ -76,16 +81,16 @@ spec:
 
 | 項目 | 説明 |
 |---|---|
-| `apiVersion: v1` | APIのバージョン |
+| `apiVersion: v1` | APIのバージョン（v1はcoreグループ） |
 | `kind: Pod` | リソースの種類 |
 | `metadata.name` | Podの名前 |
 | `metadata.namespace` | Podを作成するnamespace |
 | `spec.containers` | コンテナのリスト |
 | `spec.containers[].name` | コンテナの名前 |
 | `spec.containers[].image` | 使用するコンテナイメージ |
-| `spec.containers[].ports` | 公開するポート |
+| `spec.containers[].ports` | コンテナが待ち受けるポート |
 
-## manifestを適用してPodを起動する
+## Podをデプロイする
 
 ### namespaceの作成
 
@@ -159,7 +164,7 @@ k delete -f pod.yaml
 pod "nginx" deleted
 ```
 
-## 複数コンテナのPodを試す
+## サイドカーパターンを試す
 
 Podは複数のコンテナを含むことができます。メインのコンテナを補助する形で動作するコンテナを「サイドカー」と呼びます。
 
@@ -169,7 +174,7 @@ manifest-practice/
 └── pod-sidecar.yaml
 ```
 
-### サイドカーパターンの例：ログ転送
+### ログ転送の例
 
 以下の例では、nginxのアクセスログを共有ボリュームに出力し、サイドカーコンテナがそのログを読み取ります。
 実務ではこのパターンでFluentdやFluentbitなどのログ収集ツールにログを転送します。
@@ -291,11 +296,18 @@ namespace "dev" deleted
 
 ## まとめ
 
-これでいつでもファイルから同じPodを起動することができるようになりました。
+この記事では、manifestファイルを使ってPodを定義し、起動する方法を学びました。
 
-- ファイルなのでgitで管理することもできる
-- チームメンバーへの共有もかんたん
-- これからはmanifestを操作しながらKubernetesのリソースを作成していく
+manifestファイルを使うメリット：
+- **再現性**: 同じ構成をいつでも正確に再現できる
+- **バージョン管理**: Gitで変更履歴を追跡できる
+- **共有**: チームメンバーと設定を簡単に共有できる
+- **宣言的管理**: あるべき状態をコードで定義できる
+
+今回学んだこと：
+- manifestの基本構造（apiVersion、kind、metadata、spec）
+- `kubectl apply -f`でmanifestを適用する方法
+- 複数コンテナを持つPod（サイドカーパターン）の定義方法
 
 ## 参考資料
 
