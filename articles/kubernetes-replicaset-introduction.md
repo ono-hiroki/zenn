@@ -413,7 +413,7 @@ ReplicaSetは`selector`で指定したラベルを持つPodを管理対象とす
 `selector.matchLabels`と`template.metadata.labels`は必ず一致させてください。
 :::
 
-## 後片付け
+## クリーンアップ
 
 ReplicaSetを削除すると、管理下のPodも一緒に削除されます。
 
