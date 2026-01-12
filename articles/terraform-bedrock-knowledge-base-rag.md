@@ -1,6 +1,6 @@
 ---
 title: "TerraformでAmazon Bedrock Knowledge BaseとRAGを構築する"
-emoji: "🤖"
+emoji: "🏗️"
 type: "tech"
 topics: ["terraform", "aws", "bedrock", "rag", "opensearch"]
 published: false

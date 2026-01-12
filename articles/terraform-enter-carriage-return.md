@@ -1,6 +1,6 @@
 ---
 title: "Terraformで Enter を押しても ^M が表示されて進まない問題の解決方法"
-emoji: "⌨️"
+emoji: "🏗️"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["Terraform", "Terminal", "Linux", "macOS"]
 published: true

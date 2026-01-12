@@ -1,6 +1,6 @@
 ---
-title: "ReplicaSetでPodの自動復旧とスケーリングを実現する"
-emoji: "🔄"
+title: "Kubernetes入門 - ReplicaSetでPodを管理する"
+emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "replicaset", "kubectl", "scaling"]
 published: false
