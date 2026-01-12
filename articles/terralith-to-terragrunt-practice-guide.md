@@ -1,6 +1,6 @@
 ---
 title: "Terragrunt公式ガイド「Terralith to Terragrunt」ディレクトリ構成まとめ"
-emoji: "🏗️"
+emoji: "🍆"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["Terraform", "Terragrunt", "AWS", "IaC", "OpenTofu"]
 published: true

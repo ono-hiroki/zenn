@@ -1,6 +1,6 @@
 ---
 title: "Terragrunt + SOPS でシークレットを安全に Git 管理する"
-emoji: "🏗️"
+emoji: "🍆"
 type: "tech"
 topics: ["terragrunt", "sops", "terraform", "aws"]
 published: true

@@ -1,6 +1,6 @@
 ---
 title: "Terragrunt × ecspresso 構成で初回デプロイ時に発生する依存関係問題と5つの解決策"
-emoji: "🏗️"
+emoji: "🍆"
 type: "tech"
 topics: ["AWS", "ECS", "Terraform", "Terragrunt", "ecspresso"]
 published: true

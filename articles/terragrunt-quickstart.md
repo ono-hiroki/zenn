@@ -1,6 +1,6 @@
 ---
 title: "Terragrunt入門：公式Quickstartを実践してみた"
-emoji: "🏗️"
+emoji: "🍆"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["Terragrunt", "Terraform", "IaC", "DevOps"]
 published: true
