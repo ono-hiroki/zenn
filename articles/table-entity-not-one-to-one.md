@@ -1,6 +1,6 @@
 ---
 title: "テーブルとEntityは1対1じゃなくてもいい"
-emoji: "🎭"
+emoji: "🧩"
 type: "tech"
 topics: ["architecture", "oop", "solid"]
 published: true

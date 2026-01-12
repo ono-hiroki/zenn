@@ -1,6 +1,6 @@
 ---
 title: "読み取りは自由でいい"
-emoji: "🍞"
+emoji: "🧩"
 type: "tech"
 topics: [ "php","architecture","cqrs" ]
 published: true

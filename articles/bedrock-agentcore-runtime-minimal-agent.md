@@ -1,6 +1,6 @@
 ---
 title: "Amazon Bedrock AgentCore Runtime に最小構成のエージェントをデプロイする"
-emoji: "🔬"
+emoji: "🤖"
 type: "tech"
 topics: ["aws", "agentcore", "fastapi"]
 published: true

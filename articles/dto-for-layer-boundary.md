@@ -1,6 +1,6 @@
 ---
 title: "DTOがあると考える範囲が減る"
-emoji: "🧱"
+emoji: "🧩"
 type: "tech" # tech: 技術記事 / idea: アイデア
 topics: ["PHP"]
 published: true

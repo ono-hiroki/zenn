@@ -1,6 +1,6 @@
 ---
 title: "Strands AgentsをAmazon Bedrock AgentCore Runtimeにデプロイする"
-emoji: "🚀"
+emoji: "🤖"
 type: "tech"
 topics: ["strandsagents","aws","bedrock","python","agentcore"]
 published: true

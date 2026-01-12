@@ -1,6 +1,6 @@
 ---
 title: "AWS CLIで学ぶAmazon Bedrock AgentCore Memory"
-emoji: "🧠"
+emoji: "🤖"
 type: "tech"
 topics: ["aws","agentcore"]
 published: true
