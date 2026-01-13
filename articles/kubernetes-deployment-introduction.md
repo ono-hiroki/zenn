@@ -3,7 +3,7 @@ title: "Kubernetesをやってみる - Deploymentでアプリケーションを�
 emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "deployment", "kubectl", "rollingupdate"]
-published: false
+published: true
 ---
 
 ## はじめに
