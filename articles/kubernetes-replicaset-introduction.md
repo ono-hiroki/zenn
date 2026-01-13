@@ -1,5 +1,5 @@
 ---
-title: "Kubernetes入門 - ReplicaSetでPodを管理する"
+title: "Kubernetesをやってみる - ReplicaSetでPodを管理する"
 emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "replicaset", "kubectl", "scaling"]

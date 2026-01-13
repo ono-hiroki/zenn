@@ -1,5 +1,5 @@
 ---
-title: "Kubernetes入門 - manifestファイルでPodを定義する"
+title: "Kubernetesをやってみる - manifestファイルでPodを定義する"
 emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "yaml", "docker"]

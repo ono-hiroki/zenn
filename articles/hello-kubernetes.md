@@ -1,5 +1,5 @@
 ---
-title: "Kubernetes入門 - はじめてのPodをnginxで動かす"
+title: "Kubernetesをやってみる - はじめてのPodをnginxで動かす"
 emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "docker", "container", "nginx"]
