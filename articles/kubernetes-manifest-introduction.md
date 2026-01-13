@@ -8,6 +8,8 @@ published: true
 
 ## はじめに
 
+Kubernetesを触り始めたので、学んだことを記録していきます。
+
 前回の記事では`kubectl run`コマンドでPodを起動しました。
 
 https://zenn.dev/hono8944/articles/hello-kubernetes

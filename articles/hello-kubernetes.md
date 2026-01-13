@@ -6,6 +6,8 @@ topics: ["kubernetes", "docker", "container", "nginx"]
 published: true
 ---
 
+Kubernetesを触り始めたので、学んだことを記録していきます。
+
 Kubernetesの最小デプロイ単位であるPodの操作を学びます。
 nginxコンテナを使ってPodの起動・確認・削除を実践します。
 
