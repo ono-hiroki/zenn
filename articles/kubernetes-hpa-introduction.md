@@ -3,14 +3,16 @@ title: "Kubernetesをやってみる - HPAでPodを自動スケーリングす�
 emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "hpa", "autoscaling", "kubectl"]
-published: false
+published: true
 ---
 
 ## はじめに
 
+Kubernetesを触り始めたので、学んだことを記録していきます。
+
 「アクセスが急増してサーバーが落ちた」「深夜は誰も使わないのにリソースが無駄になっている」——こんな経験はありませんか？
 
-Kubernetes の HorizontalPodAutoscaler（HPA）は、CPU やメモリの使用率に応じて Pod 数を自動調整してくれる機能です。本記事では kind クラスター上で HPA を構築し、公式ドキュメントのウォークスルーに沿って負荷テストを行い、スケールアウト・スケールインの動作を体験します。
+Kubernetes の HorizontalPodAutoscaler（HPA）は、CPU やメモリの使用率に応じて Pod 数を自動調整する機能です。本記事では kind クラスター上で HPA を構築し、公式ドキュメントのウォークスルーに沿って負荷テストを行い、スケールアウト・スケールインの動作を体験します。
 
 :::message
 本記事では `kubectl` のエイリアスとして `k` を使用しています。
@@ -23,62 +25,9 @@ Kubernetes の HorizontalPodAutoscaler（HPA）は、CPU やメモリの使用�
 - requests / limits の役割と設定方法
 - 負荷テストによるスケールアウト・スケールインの確認
 
-## kind クラスターを作成する
-
-本記事では kind（Kubernetes IN Docker）を使用します。ローカル PC 上で手軽に Kubernetes クラスターを構築でき、HPA の動作検証に最適です。
-
-### クラスターを作成
-
-```bash
-kind create cluster --name hpa-demo
-```
-
-```
-Creating cluster "hpa-demo" ...
- ✓ Ensuring node image (kindest/node:v1.32.0) 🖼
- ✓ Preparing nodes 📦
- ✓ Writing configuration 📜
- ✓ Starting control-plane 🕹️
- ✓ Installing CNI 🔌
- ✓ Installing StorageClass 💾
-Set kubectl context to "kind-hpa-demo"
-You can now use your cluster with:
-
-kubectl cluster-info --context kind-hpa-demo
-
-Have a nice day! 👋
-```
-
-クラスターが作成されたことを確認します。
-
-```bash
-k cluster-info
-```
-
-```
-Kubernetes control plane is running at https://127.0.0.1:xxxxx
-CoreDNS is running at https://127.0.0.1:xxxxx/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-```
-
-### 作業用 namespace を作成
-
-HPA の検証用に namespace を作成します。
-
-```bash
-k create namespace dev
-```
-
-```
-namespace/dev created
-```
-
-:::message
-kind 以外の環境（minikube、Docker Desktop、EKS など）でも同様の手順で HPA を構築できます。ただし metrics-server のセットアップ方法は環境によって異なります。
-:::
-
 ## なぜ HPA が必要なのか
 
-クラスターの準備ができたところで、HPA がなぜ必要なのかを理解しておきましょう。
+HPA の実装に入る前に、なぜ必要なのかを理解しておきましょう。
 
 ### Deployment だけでは負荷に対応できない
 
@@ -115,6 +64,22 @@ HPA を使うことで、このジレンマを解消できます。
 | 運用負荷の軽減 | 手動でのスケーリング作業から解放される |
 
 HPA は CPU やメモリの使用率を監視し、Deployment の replica 数を動的に書き換えます。これにより、負荷に応じた適切な Pod 数を自動で維持できます。
+
+## 環境
+
+- Kubernetes クラスター: kind
+
+```bash
+# クラスター作成
+kind create cluster --name hpa-demo
+
+# namespace 作成
+k create namespace dev
+```
+
+:::message
+kind 以外の環境（minikube、Docker Desktop、EKS など）でも同様の手順で HPA を構築できます。ただし metrics-server のセットアップ方法は環境によって異なります。
+:::
 
 ## requests / limits の動作を確認する
 
@@ -242,27 +207,6 @@ Events:
 ```bash
 k delete -f ./manifests/big-request.yaml
 ```
-
-## HPA の構成
-
-ここから HPA を構築していきます。最終的に以下の構成を作成します。
-
-```mermaid
-flowchart TB
-    HPA["HPA"]
-    Deployment["Deployment"]
-    Pod["Pod (php-apache)"]
-    Service["Service"]
-    LoadGenerator["負荷生成 Pod"]
-
-    HPA -->|replica 数を調整| Deployment
-    HPA -.->|メトリクスを監視| Pod
-    Deployment -->|管理| Pod
-    LoadGenerator -->|リクエスト| Service
-    Service -->|転送| Pod
-```
-
-まずは HPA のスケール対象となる Deployment と Service を作成します。
 
 ## スケール対象のリソースを作成
 
@@ -431,6 +375,23 @@ HPA は「現在の CPU 使用量 ÷ requests」で使用率を計算します�
 requests を設定していないと HPA は使用率を計算できません。
 
 ## HPA を作成する
+
+ここまでの準備で、以下の構成を作成していきます。
+
+```mermaid
+flowchart TB
+    HPA["HPA"]
+    Deployment["Deployment"]
+    Pod["Pod (php-apache)"]
+    Service["Service"]
+    LoadGenerator["負荷生成 Pod"]
+
+    HPA -->|replica 数を調整| Deployment
+    HPA -.->|メトリクスを監視| Pod
+    Deployment -->|管理| Pod
+    LoadGenerator -->|リクエスト| Service
+    Service -->|転送| Pod
+```
 
 ### 方法 1: kubectl autoscale コマンド（簡易）
 
@@ -657,7 +618,7 @@ kind delete cluster --name hpa-demo
 
 ## まとめ
 
-本記事では HPA を使って Pod を自動スケーリングさせる方法を学びました。
+HPA を使って Pod を自動スケーリングさせる方法を学びました。
 
 **押さえておきたいポイント**
 
@@ -675,7 +636,7 @@ kind delete cluster --name hpa-demo
 
 ## 発展的なトピック
 
-本記事で扱った CPU ベースの HPA は基本形です。実運用ではさらに以下のような選択肢があります。
+今回扱った CPU ベースの HPA は基本形です。実運用ではさらに以下のような選択肢があります。
 
 - **メモリベースの HPA**: `metrics` に `memory` を追加することで、メモリ使用率でもスケーリング可能
 - **カスタムメトリクス HPA**: リクエスト数やキュー長など、アプリケーション固有のメトリクスでスケーリング
