@@ -1,8 +1,8 @@
 ---
-title: "HPA 入門：CPU 使用率で Pod を自動スケーリングさせる"
-emoji: "📈"
+title: "Kubernetesをやってみる - HPAでPodを自動スケーリングする"
+emoji: "☸️"
 type: "tech"
-topics: ["kubernetes", "hpa", "autoscaling", "kind"]
+topics: ["kubernetes", "hpa", "autoscaling", "kubectl"]
 published: false
 ---
 
