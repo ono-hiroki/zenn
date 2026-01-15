@@ -3,7 +3,7 @@ title: "自己署名証明書でnginxをHTTPS化する - HTTPからの段階的�
 emoji: "🔐"
 type: "tech"
 topics: ["nginx", "https", "docker", "ssl", "mkcert"]
-published: false
+published: true
 ---
 
 ## はじめに
@@ -155,7 +155,7 @@ curl -s http://localhost
 <!DOCTYPE html>
 <html>
 <head>
-    <title>HTTPS Test</title>
+    <title>nginx HTTPS Test</title>
 </head>
 ...
 ```
@@ -244,6 +244,8 @@ services:
 
 ## Step 4: HTTPSで動作確認
 
+Step 2で作成した `self-signed` ディレクトリで実行します。
+
 ```bash
 docker compose up -d
 ```
@@ -258,7 +260,7 @@ curl -sk https://localhost
 <!DOCTYPE html>
 <html>
 <head>
-    <title>HTTPS Test</title>
+    <title>nginx HTTPS Test</title>
 </head>
 ...
 ```
@@ -307,6 +309,8 @@ The local CA is now installed in the system trust store!
 ```
 
 ### 証明書の作成
+
+`nginx-https-test` ディレクトリでmkcert用のディレクトリを作成します。
 
 ```bash
 mkdir mkcert
@@ -371,7 +375,7 @@ curl -s https://localhost
 <!DOCTYPE html>
 <html>
 <head>
-    <title>HTTPS Test</title>
+    <title>nginx HTTPS Test</title>
 </head>
 ...
 ```
