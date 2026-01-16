@@ -3,7 +3,7 @@ title: "Kubernetesをやってみる - ServiceのClusterIPとNodePortを理解�
 emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "service", "kind", "初心者"]
-published: false
+published: true
 ---
 
 # はじめに
@@ -17,8 +17,8 @@ Pod にはそれぞれ固有の IP アドレスが割り当てられますが、
 :::message
 この記事は前後編に分かれています。
 - **前編（この記事）**: ClusterIP と NodePort
-- **後編**: LoadBalancer と ExternalName（WIP）
-  :::
+- **後編**: LoadBalancer と ExternalName
+:::
 
 # 準備
 
@@ -163,9 +163,9 @@ kubectl create service <サービスのタイプ> <サービスの名前> --tcp=
 | タイプ | 説明 |
 |--------|------|
 | **ClusterIP** | Kubernetes 内部ネットワークでのみアクセス可能（デフォルト） |
-| **NodePort** | クラスタ内共通で1つのポート(30000-32767)を各ノードに割り当て、外部からアクセス可能 |
+| **NodePort** | クラスター内共通で 1 つのポート（30000-32767）を各 Node に割り当て、外部からアクセス可能 |
 | **LoadBalancer** | クラウドプロバイダのロードバランサーをプロビジョニングし、外部からアクセス可能 |
-| **ExternalName** | サービス名を外部ドメイン名に解決するDNSエイリアス |
+| **ExternalName** | サービス名を外部ドメイン名に解決する DNS エイリアス |
 
 # ClusterIP: 内部ネットワークでアクセス可能な Service
 
@@ -579,7 +579,7 @@ NodePort がやらないこと:
 
 ---
 
-**後編では LoadBalancer と ExternalName について解説します。**
+**[後編](/articles/kubernetes-service-guide-part2)では LoadBalancer と ExternalName について解説します。**
 
 # 参考資料
 
