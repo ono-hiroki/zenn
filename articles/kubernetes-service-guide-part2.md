@@ -3,7 +3,7 @@ title: "Kubernetesをやってみる - ServiceのLoadBalancerとExternalNameを�
 emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "service", "kind", "metallb"]
-published: false
+published: true
 ---
 
 # はじめに
