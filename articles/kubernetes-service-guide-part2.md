@@ -1,6 +1,6 @@
 ---
-title: "【Kubernetes】Service 完全ガイド（後編）- LoadBalancer と ExternalName を理解する"
-emoji: "🔀"
+title: "Kubernetesをやってみる - ServiceのLoadBalancerとExternalNameを理解する"
+emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "service", "kind", "metallb"]
 published: false

@@ -1,6 +1,6 @@
 ---
-title: "【Kubernetes】Service 完全ガイド（前編）- ClusterIP と NodePort の仕組みを理解する"
-emoji: "🔀"
+title: "Kubernetesをやってみる - ServiceのClusterIPとNodePortを理解する"
+emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "service", "kind", "初心者"]
 published: false
@@ -8,16 +8,16 @@ published: false
 
 # はじめに
 
-ReplicaSet によって Pod を複数作成しましたが、Pod へどのようにリクエストをするのでしょうか？
+ReplicaSet で Pod を増やしたとき、どうやってアクセスすればいいのでしょうか？
 
-Pod には個別に IP が割り振られています。複数の Pod に対して均等にリクエストを分散させたい場合に便利なのが **Service** です。
+Pod にはそれぞれ固有の IP アドレスが割り当てられますが、個別に指定するのは面倒です。複数の Pod にリクエストを分散させたいときに使うのが **Service** です。
 
 この記事では **kind** を使って複数 Node のクラスターを構築し、**ClusterIP** と **NodePort** の動作を確認します。
 
 :::message
 この記事は前後編に分かれています。
 - **前編（この記事）**: ClusterIP と NodePort
-- **後編**: LoadBalancer と ExternalName
+- **後編**: LoadBalancer と ExternalName（WIP）
   :::
 
 # 準備
