@@ -1,16 +1,16 @@
 ---
-title: "Kubernetes Ingress入門 - 1つの入口で複数ServiceにHTTPルーティング"
-emoji: "🚪"
+title: "Kubernetesをやってみる - Ingressで複数Serviceにパスベースルーティング"
+emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "ingress", "nginx", "kind"]
-published: false
+published: true
 ---
 
 ## はじめに
 
-Kubernetes クラスターで Web サービスを公開する方法として、Service の各タイプ（ClusterIP、NodePort、LoadBalancer）があります。
+Kubernetes で複数の Web サービスを外部公開する場合、Service（LoadBalancer）だけでは Service ごとにロードバランサーが必要になり、コストがかさみます。
 
-本記事では、それらの復習をしながら、より実践的な外部公開の方法である **Ingress** について学びます。
+本記事では、**Ingress** を使って 1 つの入口で複数の Service にパスベースでルーティングする方法を学びます。
 
 :::message
 本記事では `kubectl` のエイリアスとして `k` を使用しています。
@@ -111,15 +111,15 @@ Ingress は **1 つのエントリーポイントで複数の Service にルー�
 ```
 LoadBalancer（Service ごとに LB）:
 
-  /api  → LB A → Service A → 課金
-  /web  → LB B → Service B → 課金
-  /admin → LB C → Service C → 課金
+  /api   → LB A → Service A  ─┐
+  /web   → LB B → Service B  ─┼─ 3 つの LB = 3 倍のコスト
+  /admin → LB C → Service C  ─┘
 
 Ingress（1 つの入口で振り分け）:
 
-              ┌→ /api   → Service A
-  Client → Ingress ─┼→ /web   → Service B  → 課金（1つ分）
-              └→ /admin → Service C
+               ┌→ /api   → Service A
+  Client → Ingress ─┼→ /web   → Service B  ─── 1 つの入口で済む
+               └→ /admin → Service C
 ```
 
 ### L4 と L7 の違い
@@ -340,7 +340,7 @@ kind-control-plane    0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp, 127.0.0.1:xxxxx-
 kind 専用の manifest を使用して Ingress Controller をインストールします。
 
 ```bash
-k apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/kind/deploy.yaml
+k apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.14.1/deploy/static/provider/kind/deploy.yaml
 ```
 
 Ingress Controller の Pod が Ready になるまで待ちます。
@@ -673,7 +673,7 @@ Ingress にはパスのマッチルールを `pathType` で指定できます。
 
 ### ImplementationSpecific
 
-上記の PathType の他に `ImplementationSpecific` があります。これは Ingress Controller に任せる設定です。
+上記の PathType の他に `ImplementationSpecific` があります。これは Ingress Controller の実装に依存する設定で、Controller ごとに挙動が異なる可能性があります。通常は `Prefix` または `Exact` を使用することが推奨されます。
 
 ## 複数パスのルーティング
 
@@ -686,9 +686,9 @@ Client
   │
   ▼
 Ingress Controller
-  ├─ /app  → nginxserver-service → nginx Pod
-  ├─ /web  → nginxserver-service → nginx Pod
-  └─ /hoge → ✗ マッチしない（Ingress Controller が 404 を返す）
+  ├─ /app  → nginxserver-service → Pod
+  ├─ /web  → nginxserver-service → Pod
+  └─ /hoge → ✗ ルールなし（404）
 ```
 
 :::message
@@ -732,9 +732,9 @@ spec:
 
 | 設定 | 説明 |
 |------|------|
-| `paths` に複数のルールを定義 | 上から順にマッチングされる |
+| `paths` に複数のルールを定義 | 最も長くマッチするパスが優先される |
 | `pathType: Prefix` | 前方一致。`/app` は `/app/users` にもマッチ |
-| 定義されていないパス | Ingress Controller が 404 を返す（nginx に届かない） |
+| 定義されていないパス | Ingress Controller が 404 を返す |
 
 ### Ingress を適用
 
@@ -795,9 +795,9 @@ HTTP/1.1 404 Not Found
 
 | パス | 結果 | 理由 |
 |------|------|------|
-| `/app/` | `200 OK` | Ingress → nginx に到達、コンテンツあり |
-| `/web/` | `200 OK` | Ingress → nginx に到達、コンテンツあり |
-| `/hoge` | `404 Not Found` | Ingress にルールがなく、nginx まで届かない |
+| `/app/` | `200 OK` | Ingress ルールにマッチ、バックエンドに到達 |
+| `/web/` | `200 OK` | Ingress ルールにマッチ、バックエンドに到達 |
+| `/hoge` | `404 Not Found` | Ingress ルールにマッチせず |
 
 ### ホストベースのルーティング
 
@@ -840,10 +840,10 @@ spec:
 
 | リクエスト | マッチするルール | 転送先 Service |
 |-----------|-----------------|----------------|
-| `GET /app/users` | `path: /app` | `nginxserver-service` |
-| `GET /web/index.html` | `path: /web` | `nginxserver-service` |
-| `GET /other` | なし | Ingress Controller が 404 |
 | `api.example.com/` | `host: api.example.com` | `api-service` |
+| `api.example.com/users` | `host: api.example.com` | `api-service` |
+| `web.example.com/` | `host: web.example.com` | `web-service` |
+| `other.example.com/` | なし | Ingress Controller が 404 |
 
 ## クリーンアップ
 
@@ -858,7 +858,7 @@ k delete -f nginxserver-replicaset.yaml
 Ingress Controller も削除する場合:
 
 ```bash
-k delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.10.0/deploy/static/provider/kind/deploy.yaml
+k delete -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.14.1/deploy/static/provider/kind/deploy.yaml
 ```
 
 クラスターごと削除する場合:
@@ -887,9 +887,10 @@ kind delete cluster
 
 ### 本記事で学んだこと
 
-- Ingress Controller と Ingress リソースの違い
+- Service の外部公開における課題と Ingress による解決
+- L4（Service）と L7（Ingress）の違い
 - kind での Ingress 環境構築（extraPortMappings）
-- ClusterIP Service を Ingress 経由で外部公開する方法
+- 単一パス・複数パスのルーティング設定
 - pathType（Exact / Prefix）の使い分け
 
 ## 参考資料
