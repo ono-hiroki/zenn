@@ -3,7 +3,7 @@ title: "zsh-autosuggestions でコマンド入力を爆速化する"
 emoji: "💡"
 type: "tech"
 topics: ["zsh", "shell", "CLI", "Mac", "Linux"]
-published: false
+published: true
 ---
 
 ## はじめに
@@ -12,8 +12,7 @@ published: false
 
 **zsh-autosuggestions** は、入力中のコマンドに対して履歴から候補を薄いグレーで表示してくれるプラグインです。→キーを押すだけで候補を確定できるため、コマンド入力が格段に速くなります。
 
-![zsh-autosuggestions demo](https://raw.githubusercontent.com/zsh-users/zsh-autosuggestions/master/images/demo.gif)
-*公式リポジトリより引用*
+デモは[公式のasciinema](https://asciinema.org/a/37390)で確認できます。
 
 この記事では、インストールから実践的なカスタマイズまでを解説します。
 
@@ -164,9 +163,6 @@ ZSH_AUTOSUGGEST_STRATEGY=(match_prev_cmd history)
 ```sh
 # Ctrl + Space でサジェストを確定
 bindkey '^ ' autosuggest-accept
-
-# Ctrl + Enter でサジェストを確定して実行
-bindkey '^M' autosuggest-execute
 ```
 
 よく使われるウィジェット：
