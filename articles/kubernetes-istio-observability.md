@@ -210,6 +210,6 @@ k delete -f https://raw.githubusercontent.com/istio/istio/release-1.28/samples/a
 - Istio トラフィック管理編（VirtualService / Canary Deployment）
 - Istio サーキットブレーカー / Gateway 編
 
-## ハンズオン資材
+## ソースコード
 
 https://github.com/ono-hiroki/maitake/tree/main/kubernetes/15-istio

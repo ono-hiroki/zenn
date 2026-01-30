@@ -227,6 +227,6 @@ k delete svc nginx
 - Istio トラフィック管理編（VirtualService / Canary Deployment）
 - Istio サーキットブレーカー / Gateway 編
 
-## ハンズオン資材
+## ソースコード
 
 https://github.com/ono-hiroki/maitake/tree/main/kubernetes/15-istio

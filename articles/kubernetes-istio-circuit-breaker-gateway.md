@@ -16,7 +16,7 @@ published: false
 本記事では `kubectl` のエイリアスとして `k` を使用しています。
 :::
 
-## ハンズオン資材の取得
+## ソースコードの取得
 
 マニフェストファイルを使用するため、リポジトリをクローンします。
 
@@ -210,6 +210,6 @@ k delete -f https://raw.githubusercontent.com/istio/istio/release-1.28/samples/h
 - [Istio オブザーバビリティ編](https://zenn.dev/ono_hiroki/articles/kubernetes-istio-observability)
 - [Istio トラフィック管理編](https://zenn.dev/ono_hiroki/articles/kubernetes-istio-traffic-management)
 
-## ハンズオン資材
+## ソースコード
 
 https://github.com/ono-hiroki/maitake/tree/main/kubernetes/15-istio/04-circuit-breaker-gateway
