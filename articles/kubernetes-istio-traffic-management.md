@@ -3,7 +3,7 @@ title: "Istioをやってみる - VirtualServiceでトラフィック管理とCa
 emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "k8s", "istio", "canary", "servicemesh"]
-published: false
+published: true
 ---
 
 ## はじめに
