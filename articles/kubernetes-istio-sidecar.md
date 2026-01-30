@@ -223,9 +223,9 @@ k delete svc nginx
 
 ## 関連記事
 
-- Istio オブザーバビリティ編（Kiali / Jaeger による可視化）
-- Istio トラフィック管理編（VirtualService / Canary Deployment）
-- Istio サーキットブレーカー / Gateway 編
+- [Istio オブザーバビリティ編](https://zenn.dev/ono_hiroki/articles/kubernetes-istio-observability)
+- [Istio トラフィック管理編](https://zenn.dev/ono_hiroki/articles/kubernetes-istio-traffic-management)
+- [Istio サーキットブレーカー / Gateway 編](https://zenn.dev/ono_hiroki/articles/kubernetes-istio-circuit-breaker-gateway)
 
 ## ソースコード
 

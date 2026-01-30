@@ -207,8 +207,8 @@ k delete -f https://raw.githubusercontent.com/istio/istio/release-1.28/samples/a
 ## 関連記事
 
 - [Istio サイドカー注入編](https://zenn.dev/ono_hiroki/articles/kubernetes-istio-sidecar)
-- Istio トラフィック管理編（VirtualService / Canary Deployment）
-- Istio サーキットブレーカー / Gateway 編
+- [Istio トラフィック管理編](https://zenn.dev/ono_hiroki/articles/kubernetes-istio-traffic-management)
+- [Istio サーキットブレーカー / Gateway 編](https://zenn.dev/ono_hiroki/articles/kubernetes-istio-circuit-breaker-gateway)
 
 ## ソースコード
 
