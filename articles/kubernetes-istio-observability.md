@@ -3,7 +3,7 @@ title: "Istioをやってみる - Kiali/Jaegerでサービスメッシュを可�
 emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "k8s", "istio", "kiali", "observability"]
-published: false
+published: true
 ---
 
 ## はじめに
