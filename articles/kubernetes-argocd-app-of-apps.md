@@ -10,6 +10,8 @@ published: true
 
 この記事では、ArgoCD の「App of Apps」パターンを学びます。親アプリケーションが子アプリケーションを管理し、すべてのアプリケーション定義を Git で一元管理する方法を実践します。
 
+この記事のソースは [GitHub リポジトリ](https://github.com/ono-hiroki/maitake/tree/main/kubernetes/14-argocd-introduction/hands-on) で公開しています。
+
 :::message
 本記事では `kubectl` のエイリアスとして `k` を使用しています。
 :::
@@ -662,7 +664,7 @@ ArgoCD には「ApplicationSet」という似た機能もあります。
 
 ## 関連記事
 
-- [Kubernetesをやってみる - Argo CDでGitOpsを始める](/articles/kubernetes-argocd-intro)
-- [Kubernetesをやってみる - Argo CDで自分のGitHubリポジトリから自動デプロイ](/articles/kubernetes-argocd-github-deploy)
-- [Kubernetesをやってみる - Argo CDでプライベートリポジトリからデプロイ](/articles/kubernetes-argocd-private-repo)
-- [Kubernetesをやってみる - Argo CDでHelm / Kustomize統合](/articles/kubernetes-argocd-helm-kustomize)
+- [Kubernetesをやってみる - Argo CDでGitOpsを始める](https://zenn.dev/hono8944/articles/kubernetes-argocd-intro)
+- [Kubernetesをやってみる - Argo CDで自分のGitHubリポジトリから自動デプロイ](https://zenn.dev/hono8944/articles/kubernetes-argocd-github-deploy)
+- [Kubernetesをやってみる - Argo CDでプライベートリポジトリからデプロイ](https://zenn.dev/hono8944/articles/kubernetes-argocd-private-repo)
+- [Kubernetesをやってみる - Argo CDでHelm / Kustomize統合](https://zenn.dev/hono8944/articles/kubernetes-argocd-helm-kustomize)
