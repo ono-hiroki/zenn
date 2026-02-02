@@ -10,6 +10,8 @@ published: true
 
 この記事では、Kubernetes 向けの GitOps 継続的デリバリーツールである **Argo CD** について、概念から基礎的なハンズオンまで解説します。
 
+この記事のソースは [GitHub リポジトリ](https://github.com/ono-hiroki/maitake/tree/main/kubernetes/14-argocd-introduction) で公開しています。
+
 :::message
 本記事では `kubectl` のエイリアスとして `k` を使用しています。
 :::
@@ -1079,7 +1081,7 @@ k logs -n argocd statefulset/argocd-application-controller
 
 ## 関連記事
 
-- [Kubernetesをやってみる - Argo CDで自分のGitHubリポジトリから自動デプロイ](/articles/kubernetes-argocd-github-deploy)
-- [Kubernetesをやってみる - Argo CDでプライベートリポジトリからデプロイ](/articles/kubernetes-argocd-private-repo)
-- [Kubernetesをやってみる - Argo CDのApp of Appsパターン](/articles/kubernetes-argocd-app-of-apps)
-- [Kubernetesをやってみる - Argo CDでHelm / Kustomize統合](/articles/kubernetes-argocd-helm-kustomize)
+- [Kubernetesをやってみる - Argo CDで自分のGitHubリポジトリから自動デプロイ](https://zenn.dev/hono8944/articles/kubernetes-argocd-github-deploy)
+- [Kubernetesをやってみる - Argo CDでプライベートリポジトリからデプロイ](https://zenn.dev/hono8944/articles/kubernetes-argocd-private-repo)
+- [Kubernetesをやってみる - Argo CDのApp of Appsパターン](https://zenn.dev/hono8944/articles/kubernetes-argocd-app-of-apps)
+- [Kubernetesをやってみる - Argo CDでHelm / Kustomize統合](https://zenn.dev/hono8944/articles/kubernetes-argocd-helm-kustomize)
