@@ -3,7 +3,7 @@ title: "Kubernetesをやってみる - Argo CDのApp of Appsパターン"
 emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "k8s", "argocd", "gitops", "devops"]
-published: true
+published: false
 ---
 
 ## はじめに
