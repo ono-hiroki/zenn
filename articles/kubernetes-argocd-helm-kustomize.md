@@ -10,6 +10,8 @@ published: false
 
 この記事では、ArgoCD で Helm チャートと Kustomize を使用する方法を学びます。実運用では環境ごとに設定を変えることが多く、これらのツールとの統合は必須知識です。
 
+この記事のソースは [GitHub リポジトリ](https://github.com/ono-hiroki/maitake/tree/main/kubernetes/14-argocd-introduction/hands-on) で公開しています。
+
 :::message
 本記事では `kubectl` のエイリアスとして `k` を使用しています。
 :::
@@ -717,7 +719,7 @@ spec:
 
 ## 関連記事
 
-- [Kubernetesをやってみる - Argo CDでGitOpsを始める](/articles/kubernetes-argocd-intro)
-- [Kubernetesをやってみる - Argo CDで自分のGitHubリポジトリから自動デプロイ](/articles/kubernetes-argocd-github-deploy)
-- [Kubernetesをやってみる - Argo CDでプライベートリポジトリからデプロイ](/articles/kubernetes-argocd-private-repo)
-- [Kubernetesをやってみる - Argo CDのApp of Appsパターン](/articles/kubernetes-argocd-app-of-apps)
+- [Kubernetesをやってみる - Argo CDでGitOpsを始める](https://zenn.dev/hono8944/articles/kubernetes-argocd-intro)
+- [Kubernetesをやってみる - Argo CDで自分のGitHubリポジトリから自動デプロイ](https://zenn.dev/hono8944/articles/kubernetes-argocd-github-deploy)
+- [Kubernetesをやってみる - Argo CDでプライベートリポジトリからデプロイ](https://zenn.dev/hono8944/articles/kubernetes-argocd-private-repo)
+- [Kubernetesをやってみる - Argo CDのApp of Appsパターン](https://zenn.dev/hono8944/articles/kubernetes-argocd-app-of-apps)
