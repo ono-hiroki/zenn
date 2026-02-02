@@ -3,7 +3,7 @@ title: "Kubernetesをやってみる - Argo CDでプライベートリポジト�
 emoji: "☸️"
 type: "tech"
 topics: ["kubernetes", "k8s", "argocd", "gitops", "devops"]
-published: true
+published: false
 ---
 
 ## はじめに
