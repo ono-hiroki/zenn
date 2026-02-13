@@ -3,10 +3,23 @@ title: "Azureをやってみる - AWSのEC2相当のサーバーをTerraformで�
 emoji: "🫐"
 type: "tech"
 topics: ["azure", "terraform", "aws"]
-published: false
+published: true
 ---
 
 AWSは触ったことがあるけどAzureは初めて、という方向けに、AWSとの対比を交えながらAzure上にWebサーバーを構築する手順を紹介します。
+
+## コード
+
+完全なコードはGitHubにあります。
+
+https://github.com/ono-hiroki/maitake/tree/main/azure-network
+
+```bash
+git clone https://github.com/ono-hiroki/maitake.git
+cd maitake/azure-network
+```
+
+以下、ポイントを解説します。
 
 ## AWSとAzureの用語対応
 
@@ -59,10 +72,6 @@ VNet上にパブリックサブネットを作成し、nginxが動作するLinux
 │  └───────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
-
-## コード
-
-https://github.com/ono-hiroki/maitake/tree/main/azure-network
 
 ## リソースグループ
 
@@ -215,7 +224,7 @@ resource "azurerm_linux_virtual_machine" "web" {
     apt-get install -y nginx
     systemctl enable nginx
     systemctl start nginx
-    echo "<h1>Hello from Azure VM!</h1>" > /var/www/html/index.html
+    echo "<h1>Hello from Azure VM!</h1><p>Hostname: $(hostname)</p>" > /var/www/html/index.html
   EOF
   )
 }
