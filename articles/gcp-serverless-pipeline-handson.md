@@ -1,20 +1,16 @@
 ---
-title: "GCPのサーバーレス構成を「1モジュールずつ手元で再現」してキャッチアップする"
+title: "GCPのサーバーレス・イベント駆動構成をTerraformで要素別に構築する"
 emoji: "🧩"
 type: "tech"
 topics: ["gcp", "terraform", "cloudrun", "eventarc", "iam"]
 published: false
 ---
 
-GCP をほとんど触ったことがない状態から、「ファイルを置くと自動で処理が走って DB に保存される」サーバーレス・イベント駆動な構成（Cloud Run / Eventarc / Workflows / Cloud SQL / BigQuery / IAP / Workload Identity Federation …）を理解したい。いきなり全体を読んでも頭に入らないので、取った方針が:
-
-> **構成の各要素を「独立した最小の Terraform root」として、自分の sandbox プロジェクトに1つずつ作りながら学ぶ**
-
-です。本記事はその記録と、GCP 初学者がハマった点・横断的に効いた学びのまとめです。AWS 経験はある前提で、ところどころ AWS と対比します。
+GCP のサーバーレス・イベント駆動な構成（Cloud Storage → Eventarc → Workflows → Cloud Run Job → Cloud SQL / BigQuery、Cloud Run Service + IAP、CI/CD 用の Workload Identity Federation）を、各要素を独立した最小の Terraform root として構築する。本記事は各モジュールの構成と要点、および複数モジュールで共通して現れる GCP の挙動をまとめる。AWS と対応する箇所は対比を併記する。
 
 ## コード
 
-完全なコードは GitHub に置いてあります。各ディレクトリが独立した Terraform root で、単体で `apply` できます。
+各ディレクトリが独立した Terraform root で、単体で `apply` できる。
 
 https://github.com/ono-hiroki/maitake/tree/main/gcp-serverless-pipeline
 
@@ -23,7 +19,7 @@ git clone https://github.com/ono-hiroki/maitake.git
 cd maitake/gcp-serverless-pipeline
 ```
 
-## 題材アーキテクチャ
+## アーキテクチャ
 
 ```
                 ┌─────────────┐
@@ -36,46 +32,39 @@ cd maitake/gcp-serverless-pipeline
                   └─────────┘      └───────────┘      └──────┬───────┘
                                                              ├──► Cloud SQL
                                                              └──► BigQuery
-  可視化デモ: Cloud Run Service + IAP認証
-  CI/CD: Workload Identity Federation + GitHub Actions
+  Cloud Run Service + IAP認証
+  Workload Identity Federation + GitHub Actions
 ```
 
-これを 8 モジュールに分割し、依存の少ない方から積み上げました。
+8 モジュールに分割し、依存の少ない順に構築する。
 
-| # | 要素 | 学ぶ GCP |
+| # | ディレクトリ | 学ぶ GCP |
 |---|------|---------|
 | 01 | network | VPC / Subnet / Firewall |
 | 02 | bigquery | BigQuery Dataset / Table |
 | 03 | firestore | Firestore（NoSQL） |
 | 04 | cloudsql | Cloud SQL / Private Service Access / Secret Manager |
 | 05 | application | Cloud Run Job / Artifact Registry / Service Account |
-| 06 | ui-demo | Cloud Run Service / IAP |
+| 06 | cloudrun-service | Cloud Run Service / IAP |
 | 07 | workflow | Eventarc / Workflows |
 | 08 | cicd | Workload Identity Federation |
 
-## 学習の進め方（ルール）
+各モジュールは独立した root で、state はローカル、必要な API は `google_project_service` で各モジュールが有効化する。
 
-- **1ディレクトリ = 1つの独立した Terraform root**（`init/plan/apply` が単体完結）
-- **state はローカル**（学習用なので GCS バックエンドは使わない）
-- **API 有効化も Terraform 管理**（`google_project_service`）。どのサービスがどの API を要るかが見える
-- **`terraform graph` で依存を可視化**（複雑さが edge 数で分かる）
+## 01 network — VPC とサブネット
 
-## モジュールごとの学び
-
-### 01 network — VPC はグローバル
-
-AWS との最初の違い。**GCP の VPC はグローバル、サブネットがリージョンに紐づく**。
+GCP の VPC はグローバル、サブネットはリージョンに紐づく（AWS の VPC はリージョン単位）。
 
 ```hcl
 resource "google_compute_network" "main" {
   name                    = "sbx-demo"
-  auto_create_subnetworks = false  # ← カスタムモード VPC
+  auto_create_subnetworks = false  # カスタムモード VPC
 }
 ```
 
-`false` で「カスタムモード」（サブネットを自分で定義、本番推奨）、`true` だと全リージョンに自動作成（オートモード）。プロジェクト既定の `default` VPC がオートモードなので、並べると違いが一目瞭然です。
+`auto_create_subnetworks = false` はカスタムモード（サブネットを明示定義）、`true` はオートモード（全リージョンに自動作成）。プロジェクト既定の `default` VPC はオートモード。
 
-### 02 bigquery — サーバレス DWH、ID にハイフン不可
+## 02 bigquery — Dataset / Table
 
 ```hcl
 resource "google_bigquery_dataset" "main" {
@@ -84,11 +73,11 @@ resource "google_bigquery_dataset" "main" {
 }
 ```
 
-`bq query` でサンプルテーブルに INSERT/SELECT すると、インスタンス管理不要なサーバレス DWH の手触りが掴めます。
+BigQuery はインスタンス管理が不要で、保存量とスキャン量で課金される。`bq query` でテーブルへ INSERT / SELECT できる。
 
-### 03 firestore — `gcloud firestore documents create` は無い
+## 03 firestore — ドキュメント操作は REST API
 
-NoSQL ドキュメント DB。ハマったのは **ドキュメントの CRUD が gcloud に無い** こと。`gcloud firestore` のサブコマンドは databases / indexes / export などインフラ操作だけ。値の読み書きは REST API か SDK です。
+NoSQL ドキュメント DB。`gcloud firestore` のサブコマンドは databases / indexes / export などインフラ操作のみで、ドキュメントの CRUD は含まれない。値の読み書きは REST API か各言語 SDK を使う。
 
 ```bash
 TOKEN=$(gcloud auth print-access-token)
@@ -97,75 +86,69 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/jso
   -d '{"fields":{"title":{"stringValue":"テスト"}}}'
 ```
 
-### 04 cloudsql — 秘密を tfstate に残さない設計
+## 04 cloudsql — Private Service Access と秘密の扱い
 
-技術的には **Private Service Access（VPC ピアリング）** が肝。Cloud SQL は Google 管理 VPC で動くので、内部 IP で繋ぐには「ピアリング用 IP 範囲を予約 → Service Networking 接続を確立」します。
+Cloud SQL は Google 管理の VPC で動く。内部 IP で接続するには Private Service Access を構成する（ピアリング用 IP 範囲を予約 → Service Networking 接続を確立 → `private_network` 指定でインスタンス作成）。
 
-そして一番の学びが **「秘密を tfstate に持ち込まない」設計**:
+秘密情報の扱いには次の構成を用いる。
 
-- `google_secret_manager_secret`（入れ物）は作るが、**`secret_version`（値）は作らない**
+- `google_secret_manager_secret`（入れ物）は作るが、`secret_version`（値）は Terraform で作らない
 - DB ユーザーのパスワードは初回ダミー値 + `lifecycle { ignore_changes = [password] }`
 
 ```hcl
 resource "google_sql_user" "main" {
   password = "CHANGE_ME"                       # 初回ダミー
-  lifecycle { ignore_changes = [password] }    # 以降TFは追跡しない
+  lifecycle { ignore_changes = [password] }    # 以降 TF は password を追跡しない
 }
 ```
 
-`ignore_changes` は「新しい値を追跡する」ではなく **「その項目をもう一切見ない」**。本物は apply 後に `gcloud` で手動投入し、TF はダミーを上書きしようとしない。結果として **本物のパスワードは一度も Terraform / tfstate を通らない**。
+`ignore_changes` を指定した属性は、作成後の差分を Terraform が検知しない。本物のパスワードは apply 後に `gcloud` で投入し、Terraform はダミー値のまま保持する。Terraform を経由した値は tfstate に平文で保存されるため、この構成により本物のパスワードは tfstate に入らない。
 
-> 大原則: **Terraform を通った秘密は、リソース種別を問わず tfstate に平文で残る**。だから「本物を TF に渡さない」工夫が要る。
+## 05 application — Cloud Run Job
 
-### 05 application — Cloud Run Job と FAIL_RATE でリトライ観察
-
-Cloud Run **Job**（実行して完了するバッチ）。Google 公式サンプル Job イメージは `FAIL_RATE` / `SLEEP_MS` を読むので、**確率失敗 → 自動リトライ** を観察できます。
+Cloud Run Job はリクエストを受けず、実行して完了するバッチ。Google 公式のサンプル Job イメージは環境変数 `FAIL_RATE` / `SLEEP_MS` を読む。
 
 ```bash
 gcloud run jobs update <job> --update-env-vars FAIL_RATE=0.5 --tasks=4
 gcloud run jobs execute <job> --wait
-# → retriedCount: 1, succeededCount: 4（1タスク失敗→リトライで成功）
+# 結果例: retriedCount: 1, succeededCount: 4
 ```
 
-`image` と `env` は `ignore_changes` 対象にして「中身は CI に任せ、TF はインフラの骨組みだけ」を表現。
+`FAIL_RATE` で一定確率でタスクが失敗し、`max_retries` の範囲でリトライされる。`image` と `env` は `ignore_changes` 対象にし、イメージ更新は CI 側に委ねる。
 
-### 06 ui-demo — IAP の 403 を audit log で切り分ける
+## 06 cloudrun-service — Cloud Run Service と IAP
 
-Cloud Run **Service** + **IAP**。ここが一番ハマりました。`iap_enabled = true`（google-beta 専用）＋ ユーザーに `roles/iap.httpsResourceAccessor` ＋ IAP サービスエージェントに `run.invoker`。設定は正しいのに **403「You don't have access」** が消えない。
+Cloud Run Service は HTTP リクエストを受け続ける常駐コンテナ。`iap_enabled = true`（google-beta プロバイダ）で前段に IAP が入る。アクセス制御に必要な IAM は 2 つ。
 
-効いたのが **Cloud Audit Logs の `authorizationInfo`**:
+- ユーザー / グループに `roles/iap.httpsResourceAccessor`
+- IAP サービスエージェントに `roles/run.invoker`
+
+IAM を正しく設定しても 403 になる場合がある。切り分けには Cloud Audit Logs の `authorizationInfo` を参照する。
 
 ```bash
 gcloud logging read 'protoPayload.serviceName="iap.googleapis.com"' \
   --format="value(protoPayload.authorizationInfo[0].granted,
     protoPayload.requestMetadata.requestAttributes.auth.principal)"
-# granted=false, principal=(空)
 ```
 
-`auth.principal` が**空**＝ IAP に認証セッションが届いていない（IAM 不足ではない）。IAP を一時的に外して `allUsers` 公開にすると 200 で表示できたので、**アプリ・IAM は正常で、止めていたのは IAP の認証セッション層**（サードパーティ Cookie ブロック / 組織のコンテキストアウェアアクセス等、Terraform の外）と確定。
+`granted=false` かつ `auth.principal` が空の場合、IAM ロール不足ではなく、リクエストに認証セッションが付いていない（サードパーティ Cookie のブロックや組織のコンテキストアウェアアクセス等、Terraform の管理外の要因）。IAP を無効化して `allUsers` 公開にするとアプリ自体の動作を切り分けられる。
 
-> 「設定したのに 403」はまず audit log の `authorizationInfo` と `auth.principal` を見る。principal が空なら IAM ではなく認証セッション層を疑う。
+## 07 workflow — Eventarc と Workflows
 
-### 07 workflow — なぜ Workflows を挟むのか
+`GCS → Eventarc → Workflows → Cloud Run Job` を構成する。バケットへファイルを置くと Workflows が起動し、Cloud Run Job が実行される。
 
-`GCS → Eventarc → Workflows → Cloud Run Job`。実際にバケットへファイルを置くと Job が起動するところまで動かしました。
-
-**なぜ Eventarc から直接 Job を呼ばず Workflows を挟むのか?** ——
-
-- Eventarc が直接呼べる宛先は **HTTP を受けるもの**（Cloud Run **Service** / Workflows / GKE …）
-- Cloud Run **Job** は HTTP を受けない。起動には Jobs API（`jobs.run`）を**呼ぶ**必要がある
-- だから「Jobs API を呼ぶ係」として Workflows を挟む
+Eventarc の宛先（destination）に直接指定できるのは HTTP を受けるもの（Cloud Run Service / Workflows / GKE）。Cloud Run Job は HTTP を受けず、起動には Jobs API（`jobs.run`）の呼び出しが必要なため、Eventarc から直接は起動できない。Workflows を経由して Jobs API を呼ぶ。
 
 ```
-宛先が Service → Eventarc → Service（HTTP直送、Workflows不要）
-宛先が Job     → Eventarc → Workflows →(Jobs API)→ Job
+宛先が Cloud Run Service → Eventarc → Service（HTTP 直送）
+宛先が Cloud Run Job     → Eventarc → Workflows →(Jobs API)→ Job
 ```
 
-イベント駆動は**登場人物が多い**（トリガー SA・Eventarc サービスエージェント・GCS サービスエージェント…）。要素が多すぎるので、Workflows / Pub/Sub / Eventarc を**単体**で試す最小モジュールも `components/` に用意して、段階的に理解しました。
+Eventarc の GCS トリガーは内部で Pub/Sub を使う。構成には複数の ID が必要（トリガー SA、Eventarc サービスエージェント、GCS サービスエージェントの `pubsub.publisher`）。`components/` に Workflows / Pub/Sub / Eventarc を単体で構築する最小モジュールを置いている。
 
-### 08 cicd — 鍵レス認証（WIF）、AWS との対応
+## 08 cicd — Workload Identity Federation
 
-**Workload Identity Federation**。GitHub Actions が **SA キー(JSON) を一切持たずに** OIDC で GCP 認証する仕組み。AWS の OIDC + AssumeRole とほぼ同じ発想です。
+GitHub Actions が Service Account キー（JSON）を使わず、OIDC トークンで GCP に認証する。AWS の OIDC Identity Provider + AssumeRoleWithWebIdentity に対応する。
 
 | 概念 | AWS | GCP（WIF） |
 |---|---|---|
@@ -174,69 +157,62 @@ gcloud logging read 'protoPayload.serviceName="iap.googleapis.com"' \
 | 成り代わる先の ID + 権限 | IAM Role | Service Account + IAM ロール |
 | トークン交換 | sts:AssumeRoleWithWebIdentity | STS（sts.googleapis.com） |
 
-違いは **AWS は 1 つの Role に信頼+権限が同居、GCP は Pool / Provider / SA に分割** される点。
+AWS は 1 つの Role に信頼と権限が同居する。GCP は Pool / Provider / SA に分かれ、「誰が impersonate してよいか（principalSet への `workloadIdentityUser`）」と「その SA が何をできるか（project ロール）」が別リソースになる。
 
-最小の GitHub Actions で実動確認できます（**Secrets 設定ゼロ**。Provider パスと SA メールは秘密ではないのでベタ書きでよい）:
+GitHub Actions 側は Secrets 不要（Provider パスと SA メールは秘密情報ではない）。
 
 ```yaml
 permissions:
-  id-token: write          # OIDC 発行に必須
+  id-token: write
 steps:
   - uses: google-github-actions/auth@v2
     with:
       workload_identity_provider: <output>
       service_account: <output>
-  - run: gcloud auth list   # active が cicd SA なら成功
+  - run: gcloud auth list   # active が CI/CD SA になる
 ```
 
-## 横断的に効いた「GCP のクセ」
+## 複数モジュールで共通する GCP の挙動
 
-モジュールを跨いで繰り返し出たので、これが GCP 全般の知識として一番の収穫でした。
+### IAM は結果整合（伝播待ち）
 
-### 1. IAM は結果整合（伝播待ち）
+権限付与の反映には時間差がある。付与直後はエラーになる場合がある。
 
-「権限を付けた直後はまだ効かない」場面に何度も遭遇:
+| 場面 | 症状 |
+|---|---|
+| IAP | 付与済みでも 403 |
+| Eventarc | サービスエージェント権限の反映前にトリガー作成すると 400 |
+| Workflows | logWriter 付与直後の実行で 403 |
 
-| 場面 | 症状 | 対処 |
-|---|---|---|
-| IAP | 付与済みなのに 403 | 伝播待ち |
-| Eventarc | サービスエージェント権限が間に合わず作成失敗 (400) | `time_sleep` |
-| Workflows | logWriter 付与直後に 403 | 数分待って再実行 |
-
-Terraform で「待つ」を表現するなら:
+Terraform では `time_sleep` で待機を挟む。
 
 ```hcl
 resource "time_sleep" "wait" {
   depends_on      = [google_project_iam_member.eventarc_service_agent]
   create_duration = "120s"
 }
-# trigger 側で depends_on = [time_sleep.wait]
 ```
 
-### 2. `deletion_protection` がデフォルト true のリソースが多い
+### deletion_protection がデフォルト true のリソース
 
-`terraform destroy` が「`deletion_protection=false` にして apply してから」と弾く系。
+`terraform destroy` の前に `deletion_protection = false` を反映する必要がある。
 
 | リソース | フィールド | 既定 |
 |---|---|---|
 | Cloud SQL | `deletion_protection` | true |
-| Cloud Run Job/Service | `deletion_protection` | true |
+| Cloud Run Job / Service | `deletion_protection` | true |
 | Workflows | `deletion_protection` | true |
 | Firestore | `delete_protection_state` | ENABLED |
 | BigQuery table | `deletion_protection` | true |
 
-### 3. `ignore_changes` で「TF と運用の役割分担」
+### ignore_changes
 
-`image` / `env` / `password` を `ignore_changes` にして、**TF はインフラの骨組み、中身は CI や手動運用に任せる**。04 のパスワード、05/06 のイメージで同じパターンが出ます。
+`image` / `env` / `password` を `ignore_changes` にすると、Terraform はそれらの差分を検知しない。インフラ定義は Terraform、コンテナイメージや環境変数の更新は CI、という分担に使う。
 
-### 4. 依存グラフで複雑度を見える化
+### terraform graph
 
-`terraform graph | dot -Tpng` で各モジュールの依存を可視化。edge 数がそのまま複雑度の目安に。イベント駆動（workflow, 17 edges）が突出して複雑＝「登場人物が多い」が数字で見えます。
+`terraform graph | dot -Tpng` で依存を可視化できる。edge 数はモジュールの依存の多さを示す（例: イベント駆動の workflow は 17 edges）。
 
 ## まとめ
 
-- **実在しうる構成を題材に、1要素ずつ独立 root で再現**するのは、全体を一度に読むより圧倒的に頭に入った
-- **手を動かして実機で確認**（FAIL_RATE のリトライ、IAP の 403、GCS 投入で Job 起動、WIF で実認証）すると、ドキュメントだけでは曖昧な挙動が確信に変わる
-- **ハマりどころ（IAM 伝播・deletion_protection・秘密と tfstate・IAP のセッション層）こそ横断的な財産**。別サービスでも同じ顔で出てくる
-
-知らないクラウドをキャッチアップするとき、いきなり全体と格闘せず **要素分解 → 最小再現 → 実機確認 → 統合理解** の順で登るのはおすすめです。コードは [maitake/gcp-serverless-pipeline](https://github.com/ono-hiroki/maitake/tree/main/gcp-serverless-pipeline) にあるので、手を動かして試してみてください。
+GCP のサーバーレス・イベント駆動構成を、VPC / BigQuery / Firestore / Cloud SQL / Cloud Run（Job・Service）/ IAP / Eventarc / Workflows / Workload Identity Federation の各要素に分けて Terraform で構築した。コードは [maitake/gcp-serverless-pipeline](https://github.com/ono-hiroki/maitake/tree/main/gcp-serverless-pipeline) にある。
