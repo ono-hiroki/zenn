@@ -44,7 +44,7 @@ cd maitake/gcp-serverless-pipeline
 | 02 | bigquery | BigQuery Dataset / Table |
 | 03 | firestore | Firestore（NoSQL） |
 | 04 | cloudsql | Cloud SQL / Private Service Access / Secret Manager |
-| 05 | application | Cloud Run Job / Artifact Registry / Service Account |
+| 05 | cloudrun-job | Cloud Run Job / Artifact Registry / Service Account |
 | 06 | cloudrun-service | Cloud Run Service / IAP |
 | 07 | workflow | Eventarc / Workflows |
 | 08 | cicd | Workload Identity Federation |
@@ -104,7 +104,7 @@ resource "google_sql_user" "main" {
 
 `ignore_changes` を指定した属性は、作成後の差分を Terraform が検知しない。本物のパスワードは apply 後に `gcloud` で投入し、Terraform はダミー値のまま保持する。Terraform を経由した値は tfstate に平文で保存されるため、この構成により本物のパスワードは tfstate に入らない。
 
-## 05 application — Cloud Run Job
+## 05 cloudrun-job — Cloud Run Job
 
 Cloud Run Job はリクエストを受けず、実行して完了するバッチ。Google 公式のサンプル Job イメージは環境変数 `FAIL_RATE` / `SLEEP_MS` を読む。
 
