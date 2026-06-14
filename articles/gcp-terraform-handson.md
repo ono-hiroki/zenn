@@ -1,57 +1,40 @@
 ---
-title: "GCPのサーバーレス・イベント駆動構成をTerraformで要素別に構築する"
+title: "GCPの主要サービスをTerraformで単体最小構成で触る"
 emoji: "🧩"
 type: "tech"
 topics: ["gcp", "terraform", "cloudrun", "eventarc", "iam"]
 published: false
 ---
 
-GCP のサーバーレス・イベント駆動な構成（Cloud Storage → Eventarc → Workflows → Cloud Run Job → Cloud SQL / BigQuery、Cloud Run Service + IAP、CI/CD 用の Workload Identity Federation）を、各要素を独立した最小の Terraform root として構築する。本記事は各モジュールの構成と要点、および複数モジュールで共通して現れる GCP の挙動をまとめる。AWS と対応する箇所は対比を併記する。
+GCP の主要サービスを、それぞれ独立した最小の Terraform root として単体で構築する。各サービスを 1 つずつ触りながら、構成のポイントと、複数サービスで共通して現れる GCP の挙動をまとめる。AWS と対応する箇所は対比を併記する。
 
 ## コード
 
-各ディレクトリが独立した Terraform root で、単体で `apply` できる。
+各ディレクトリが独立した Terraform root で、好きなものから単体で `apply` できる。
 
-https://github.com/ono-hiroki/maitake/tree/main/gcp-serverless-pipeline
+https://github.com/ono-hiroki/maitake/tree/main/gcp-terraform-handson
 
 ```bash
 git clone https://github.com/ono-hiroki/maitake.git
-cd maitake/gcp-serverless-pipeline
+cd maitake/gcp-terraform-handson
 ```
 
-## アーキテクチャ
+| ディレクトリ | 学ぶ GCP |
+|------|---------|
+| vpc-network | VPC / Subnet / Firewall |
+| bigquery | BigQuery Dataset / Table |
+| firestore | Firestore（NoSQL） |
+| cloudsql | Cloud SQL / Private Service Access / Secret Manager |
+| cloudrun-job | Cloud Run Job / Artifact Registry / Service Account |
+| cloudrun-service-iap | Cloud Run Service / IAP |
+| workflows | Workflows（単体） |
+| pubsub | Pub/Sub |
+| eventarc | Eventarc（単体） |
+| workload-identity-federation | Workload Identity Federation |
 
-```
-                ┌─────────────┐
-  ファイル投入 → │Cloud Storage│
-                └──────┬──────┘
-                       │ オブジェクト作成イベント
-                       ▼
-                  ┌─────────┐      ┌───────────┐      ┌──────────────┐
-                  │ Eventarc│ ───► │ Workflows │ ───► │ Cloud Run Job│
-                  └─────────┘      └───────────┘      └──────┬───────┘
-                                                             ├──► Cloud SQL
-                                                             └──► BigQuery
-  Cloud Run Service + IAP認証
-  Workload Identity Federation + GitHub Actions
-```
+各サンプルは独立した root で、state はローカル、必要な API は `google_project_service` で各サンプルが有効化する。
 
-8 モジュールに分割し、依存の少ない順に構築する。
-
-| # | ディレクトリ | 学ぶ GCP |
-|---|------|---------|
-| 01 | network | VPC / Subnet / Firewall |
-| 02 | bigquery | BigQuery Dataset / Table |
-| 03 | firestore | Firestore（NoSQL） |
-| 04 | cloudsql | Cloud SQL / Private Service Access / Secret Manager |
-| 05 | cloudrun-job | Cloud Run Job / Artifact Registry / Service Account |
-| 06 | cloudrun-service | Cloud Run Service / IAP |
-| 07 | workflow | Eventarc / Workflows |
-| 08 | cicd | Workload Identity Federation |
-
-各モジュールは独立した root で、state はローカル、必要な API は `google_project_service` で各モジュールが有効化する。
-
-## 01 network — VPC とサブネット
+## VPC — グローバルなネットワーク
 
 GCP の VPC はグローバル、サブネットはリージョンに紐づく（AWS の VPC はリージョン単位）。
 
@@ -64,7 +47,7 @@ resource "google_compute_network" "main" {
 
 `auto_create_subnetworks = false` はカスタムモード（サブネットを明示定義）、`true` はオートモード（全リージョンに自動作成）。プロジェクト既定の `default` VPC はオートモード。
 
-## 02 bigquery — Dataset / Table
+## BigQuery — Dataset / Table
 
 ```hcl
 resource "google_bigquery_dataset" "main" {
@@ -75,7 +58,7 @@ resource "google_bigquery_dataset" "main" {
 
 BigQuery はインスタンス管理が不要で、保存量とスキャン量で課金される。`bq query` でテーブルへ INSERT / SELECT できる。
 
-## 03 firestore — ドキュメント操作は REST API
+## Firestore — ドキュメント操作は REST API
 
 NoSQL ドキュメント DB。`gcloud firestore` のサブコマンドは databases / indexes / export などインフラ操作のみで、ドキュメントの CRUD は含まれない。値の読み書きは REST API か各言語 SDK を使う。
 
@@ -86,11 +69,11 @@ curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/jso
   -d '{"fields":{"title":{"stringValue":"テスト"}}}'
 ```
 
-## 04 cloudsql — Private Service Access と秘密の扱い
+## Cloud SQL — Private Service Access と秘密の扱い
 
 Cloud SQL は Google 管理の VPC で動く。内部 IP で接続するには Private Service Access を構成する（ピアリング用 IP 範囲を予約 → Service Networking 接続を確立 → `private_network` 指定でインスタンス作成）。
 
-秘密情報の扱いには次の構成を用いる。
+秘密情報には次の構成を用いる。
 
 - `google_secret_manager_secret`（入れ物）は作るが、`secret_version`（値）は Terraform で作らない
 - DB ユーザーのパスワードは初回ダミー値 + `lifecycle { ignore_changes = [password] }`
@@ -104,7 +87,7 @@ resource "google_sql_user" "main" {
 
 `ignore_changes` を指定した属性は、作成後の差分を Terraform が検知しない。本物のパスワードは apply 後に `gcloud` で投入し、Terraform はダミー値のまま保持する。Terraform を経由した値は tfstate に平文で保存されるため、この構成により本物のパスワードは tfstate に入らない。
 
-## 05 cloudrun-job — Cloud Run Job
+## Cloud Run Job — バッチ実行
 
 Cloud Run Job はリクエストを受けず、実行して完了するバッチ。Google 公式のサンプル Job イメージは環境変数 `FAIL_RATE` / `SLEEP_MS` を読む。
 
@@ -116,7 +99,7 @@ gcloud run jobs execute <job> --wait
 
 `FAIL_RATE` で一定確率でタスクが失敗し、`max_retries` の範囲でリトライされる。`image` と `env` は `ignore_changes` 対象にし、イメージ更新は CI 側に委ねる。
 
-## 06 cloudrun-service — Cloud Run Service と IAP
+## Cloud Run Service + IAP
 
 Cloud Run Service は HTTP リクエストを受け続ける常駐コンテナ。`iap_enabled = true`（google-beta プロバイダ）で前段に IAP が入る。アクセス制御に必要な IAM は 2 つ。
 
@@ -133,9 +116,11 @@ gcloud logging read 'protoPayload.serviceName="iap.googleapis.com"' \
 
 `granted=false` かつ `auth.principal` が空の場合、IAM ロール不足ではなく、リクエストに認証セッションが付いていない（サードパーティ Cookie のブロックや組織のコンテキストアウェアアクセス等、Terraform の管理外の要因）。IAP を無効化して `allUsers` 公開にするとアプリ自体の動作を切り分けられる。
 
-## 07 workflow — Eventarc と Workflows
+## Workflows / Pub/Sub / Eventarc
 
-`GCS → Eventarc → Workflows → Cloud Run Job` を構成する。バケットへファイルを置くと Workflows が起動し、Cloud Run Job が実行される。
+- **Workflows**: YAML で手順を定義し実行するオーケストレータ。`gcloud workflows run <name> --data='{...}'` で手動実行できる。`params` で入力を受け取り、`call: sys.log` でログ、`return:` で戻り値を返す。
+- **Pub/Sub**: topic に publish、subscription から pull（または push）。Eventarc のイベント配送に内部で使われる。
+- **Eventarc**: イベント源（Pub/Sub / GCS / Cloud Audit Logs 等）を宛先に転送する。`matching_criteria` の `type` でイベント種別を指定する。
 
 Eventarc の宛先（destination）に直接指定できるのは HTTP を受けるもの（Cloud Run Service / Workflows / GKE）。Cloud Run Job は HTTP を受けず、起動には Jobs API（`jobs.run`）の呼び出しが必要なため、Eventarc から直接は起動できない。Workflows を経由して Jobs API を呼ぶ。
 
@@ -144,9 +129,9 @@ Eventarc の宛先（destination）に直接指定できるのは HTTP を受け
 宛先が Cloud Run Job     → Eventarc → Workflows →(Jobs API)→ Job
 ```
 
-Eventarc の GCS トリガーは内部で Pub/Sub を使う。構成には複数の ID が必要（トリガー SA、Eventarc サービスエージェント、GCS サービスエージェントの `pubsub.publisher`）。`components/` に Workflows / Pub/Sub / Eventarc を単体で構築する最小モジュールを置いている。
+Eventarc の構成には複数の ID が必要（トリガー SA、Eventarc サービスエージェント、GCS 源の場合は GCS サービスエージェントの `pubsub.publisher`）。
 
-## 08 cicd — Workload Identity Federation
+## Workload Identity Federation
 
 GitHub Actions が Service Account キー（JSON）を使わず、OIDC トークンで GCP に認証する。AWS の OIDC Identity Provider + AssumeRoleWithWebIdentity に対応する。
 
@@ -172,7 +157,7 @@ steps:
   - run: gcloud auth list   # active が CI/CD SA になる
 ```
 
-## 複数モジュールで共通する GCP の挙動
+## 複数サービスで共通する GCP の挙動
 
 ### IAM は結果整合（伝播待ち）
 
@@ -211,8 +196,8 @@ resource "time_sleep" "wait" {
 
 ### terraform graph
 
-`terraform graph | dot -Tpng` で依存を可視化できる。edge 数はモジュールの依存の多さを示す（例: イベント駆動の workflow は 17 edges）。
+`terraform graph | dot -Tpng` で依存を可視化できる。edge 数はサンプルの依存の多さを示す。
 
 ## まとめ
 
-GCP のサーバーレス・イベント駆動構成を、VPC / BigQuery / Firestore / Cloud SQL / Cloud Run（Job・Service）/ IAP / Eventarc / Workflows / Workload Identity Federation の各要素に分けて Terraform で構築した。コードは [maitake/gcp-serverless-pipeline](https://github.com/ono-hiroki/maitake/tree/main/gcp-serverless-pipeline) にある。
+GCP の主要サービス（VPC / BigQuery / Firestore / Cloud SQL / Cloud Run / Workflows / Pub/Sub / Eventarc / Workload Identity Federation）を、それぞれ独立した最小の Terraform root として構築した。コードは [maitake/gcp-terraform-handson](https://github.com/ono-hiroki/maitake/tree/main/gcp-terraform-handson) にある。
